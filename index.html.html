@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trustly Rwanda — review / Find Trusted Businesses</title>
+<title>Trustly Rwanda — Review / Find Trusted Businesses</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&display=swap" rel="stylesheet">
 <style>
@@ -2166,42 +2166,6 @@ let skipTimer = null;
 let lockoutTimer = null;
 let loginAttempts = 0;
 
-// ── PERSISTENCE ──
-function savePending() {
-  try { localStorage.setItem('trustly_pending', JSON.stringify(PENDING)); } catch(e) {}
-}
-function saveReviews() {
-  try {
-    var m = {};
-    BIZ.forEach(function(b) { if (b.reviews && b.reviews.length) m[b.id] = b.reviews; });
-    localStorage.setItem('trustly_reviews', JSON.stringify(m));
-  } catch(e) {}
-}
-function loadSavedData() {
-  // Load pending reviews
-  try {
-    var sp = localStorage.getItem('trustly_pending');
-    if (sp) { PENDING.length = 0; JSON.parse(sp).forEach(function(p){PENDING.push(p);}); }
-    else { PENDING.length = 0; }
-  } catch(e) { PENDING.length = 0; }
-  // Load approved reviews
-  try {
-    var sr = localStorage.getItem('trustly_reviews');
-    if (sr) {
-      var m = JSON.parse(sr);
-      Object.keys(m).forEach(function(id) {
-        var b = BIZ.find(function(x){ return String(x.id)===String(id); });
-        if (b) {
-          b.reviews = m[id];
-          b.reviewCount = b.reviews.length;
-          b.avgRating = calcAvgRating(b.reviews);
-          b.trustScore = calcTrustScore(b.reviews);
-        }
-      });
-    }
-  } catch(e) {}
-}
-
 // ── HELPERS ──
 function stars(r, n) {
   n = n || 5;
@@ -2850,8 +2814,7 @@ function submitReview() {
   });
 
   // DO NOT add to biz.reviews yet — wait for admin approval
-  // Save and refresh admin panel immediately
-  savePending();
+  // Refresh admin panel immediately so new review appears
   renderAdminPending();
   // biz.reviews only gets updated when admin clicks Approve
 
@@ -2901,9 +2864,6 @@ function adminSwitch(el, tab) {
 function renderAdminPending() {
   var el = document.getElementById('admin-pending-tbody');
   if (!el) return;
-
-  // Save to localStorage so it persists on refresh
-  savePending();
 
   // Update count badges
   var countEl = document.getElementById('pending-count');
@@ -2989,14 +2949,13 @@ function moderateRv(id, action) {
       var biz = BIZ.find(function(b) { return b.id === pending._bizId; });
       if (biz) {
         pending._reviewObj.status = 'approved';
-        pending._reviewObj._localApproved = true;
+        pending._reviewObj._localApproved = true; // mark as locally approved
         // Add to front so it shows first
         biz.reviews.unshift(pending._reviewObj);
         biz.reviewCount = biz.reviews.length;
         biz.avgRating   = calcAvgRating(biz.reviews);
         biz.trustScore  = calcTrustScore(biz.reviews);
         biz.isNew = false;
-        saveReviews();
         // Re-render everything
         renderBizList(BIZ);
         renderRecent();
@@ -3238,8 +3197,9 @@ var nfStyle = document.createElement('style');
 nfStyle.textContent = '.not-found-card{text-align:center;padding:3rem 1.5rem;background:var(--surface);border:1.5px dashed var(--border-strong);border-radius:var(--radius-xl)}.nf-icon{font-size:3rem;margin-bottom:1rem}.nf-title{font-weight:700;font-size:1.125rem;color:var(--ink);margin-bottom:0.5rem}.nf-sub{font-size:0.9375rem;color:var(--ink2);line-height:1.65;margin-bottom:1.5rem;max-width:420px;margin-left:auto;margin-right:auto}.nf-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}';
 document.head.appendChild(nfStyle);
 
-// ── INIT ──
-loadSavedData();
+// ── INIT — Clear demo pending reviews, load real data ──
+// Remove demo pending entries — only show real user submissions
+PENDING.length = 0;
 renderAdminPending();
 
 api('/accounts').then(function(data) {
@@ -3364,7 +3324,7 @@ window.addEventListener('scroll', function() {
         <li><a href="#">Cookie Policy</a></li>
       </ul>
       <div class="footer-contact">
-        <div class="footer-contact-item">✉ hello@trustly.rw</div>
+        <div class="footer-contact-item">✉ support@trustly.rw</div>
         <div class="footer-contact-item">📍 Kigali, Rwanda</div>
       </div>
     </div>
