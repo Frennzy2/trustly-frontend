@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trustly Rwanda — Review Find Trusted Businesses</title>
+<title>Trustly Rwanda — Review and Find Trusted Businesses</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&display=swap" rel="stylesheet">
 <style>
@@ -2412,6 +2412,51 @@ function sbUpdate(table, id, data) {
   }).catch(function(e){ console.error("sbUpdate catch:",e); return {error:"offline"}; });
 }
 
+// ── SCREENSHOT UPLOAD TO SUPABASE STORAGE ──
+function uploadScreenshot(file) {
+  return new Promise(function(resolve, reject) {
+    if (!file) { resolve(null); return; }
+
+    var fileName = "screenshot_" + Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.]/g, "_");
+    var url = SUPABASE_URL + "/storage/v1/object/screenshots/" + fileName;
+
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var arrayBuffer = e.target.result;
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_KEY,
+          "Authorization": "Bearer " + SUPABASE_KEY,
+          "Content-Type": file.type || "image/jpeg",
+          "x-upsert": "true"
+        },
+        body: arrayBuffer
+      })
+      .then(function(r) {
+        if (r.ok) {
+          // Return public URL
+          var publicURL = SUPABASE_URL + "/storage/v1/object/public/screenshots/" + fileName;
+          console.log("Screenshot uploaded:", publicURL);
+          resolve(publicURL);
+        } else {
+          return r.text().then(function(t) {
+            console.error("Screenshot upload error:", t);
+            resolve(null);
+          });
+        }
+      })
+      .catch(function(e) {
+        console.error("Screenshot upload failed:", e);
+        resolve(null);
+      });
+    };
+    reader.onerror = function() { resolve(null); };
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 // ── REVIEW STORAGE ──
 function getPending() {
   try { return JSON.parse(localStorage.getItem("tr_pending") || "[]"); } catch(e) { return []; }
@@ -2762,7 +2807,7 @@ function createProfileAndReview(query){
 }
 
 // ── SAVE TO SUPABASE ──
-function saveToSupabase(bizname, handle, phone, website, platform, review) {
+function saveToSupabase(bizname, handle, phone, website, platform, review, screenshotURL) {
   console.log("Saving to Supabase:", bizname, handle);
 
   // Step 1: Check if account exists
@@ -2772,7 +2817,7 @@ function saveToSupabase(bizname, handle, phone, website, platform, review) {
     if(rows && rows.length > 0) {
       // Account exists - save review under it
       console.log("Found existing account:", rows[0].id);
-      insertReviewToDB(rows[0].id, review);
+      insertReviewToDB(rows[0].id, review, screenshotURL);
     } else {
       // Create new account
       console.log("Creating new account in Supabase...");
@@ -2790,7 +2835,7 @@ function saveToSupabase(bizname, handle, phone, website, platform, review) {
       }).then(function(result) {
         console.log("Account insert result:", result);
         if(result && result[0] && result[0].id) {
-          insertReviewToDB(result[0].id, review);
+          insertReviewToDB(result[0].id, review, screenshotURL);
         } else {
           console.error("Failed to create account:", result);
         }
@@ -2799,7 +2844,7 @@ function saveToSupabase(bizname, handle, phone, website, platform, review) {
   });
 }
 
-function insertReviewToDB(accountId, review) {
+function insertReviewToDB(accountId, review, screenshotURL) {
   console.log("Inserting review for account:", accountId);
   sbInsert("reviews", {
     account_id: accountId,
@@ -2808,12 +2853,13 @@ function insertReviewToDB(accountId, review) {
     amount_rwf: review.amount || null,
     payment_method: review.payment || null,
     description: review.text,
-    screenshot_url: null,
+    screenshot_url: screenshotURL || null,
     review_status: "pending"
   }).then(function(result) {
     console.log("Review insert result:", result);
     if(result && result[0]) {
-      console.log("Review saved to Supabase! ID:", result[0].id);
+      console.log("✅ Review + screenshot saved to Supabase! ID:", result[0].id);
+      if(screenshotURL) console.log("📸 Screenshot URL:", screenshotURL);
     }
   });
 }
@@ -2830,6 +2876,21 @@ function submitReview(){
   var payment  = document.getElementById("f-payment").value;
   var desc     = document.getElementById("f-desc").value.trim();
 
+  // Show uploading state if screenshot attached
+  var submitBtn = document.querySelector("button[onclick='submitReview()']");
+  if(window._screenshotFile && submitBtn) {
+    submitBtn.textContent = "Uploading screenshot...";
+    submitBtn.disabled = true;
+  }
+
+  // Upload screenshot first if provided
+  uploadScreenshot(window._screenshotFile || null).then(function(screenshotURL) {
+    if(submitBtn) { submitBtn.textContent = "Submit Review ✓"; submitBtn.disabled = false; }
+    doSubmitReview(bizname, platform, handle, phone, website, date, amount, payment, desc, screenshotURL);
+  });
+}
+
+function doSubmitReview(bizname, platform, handle, phone, website, date, amount, payment, desc, screenshotURL){
   var targetId = window._pendingProfileId;
   if(!targetId){
     var match=BIZ.find(function(b){ return (b.handle&&b.handle.replace(/^@/,"").toLowerCase()===handle.toLowerCase())||b.name.toLowerCase()===bizname.toLowerCase(); });
@@ -2849,7 +2910,7 @@ function submitReview(){
   saveNewReview(review);
 
   // Save to Supabase database
-  saveToSupabase(bizname, "@"+handle, phone, website, platform, review);
+  saveToSupabase(bizname, "@"+handle, phone, website, platform, review, screenshotURL);
 
   window._pendingProfileId=null; window._screenshotData=null; currentRating=0; renderStarRating(0);
   ["f-bizname","f-handle","f-phone-biz","f-website","f-desc","f-amount","f-date"].forEach(function(fid){var el=document.getElementById(fid);if(el)el.value="";});
@@ -3055,15 +3116,20 @@ function renderStarRating(r,hover){
 function countChars(){var n=document.getElementById("f-desc").value.trim().length;var el=document.getElementById("char-count");if(el){el.textContent=n+" / 50 min";el.style.color=n>=50?"var(--rw-green)":"var(--amber)";}}
 function previewFile(input){
   if(input.files&&input.files[0]){
+    var file = input.files[0];
+    // Store the actual file for cloud upload
+    window._screenshotFile = file;
+
     var reader=new FileReader();
     reader.onload=function(e){
       var img=document.getElementById("upload-img"); if(img) img.src=e.target.result;
       var prev=document.getElementById("upload-preview"); if(prev) prev.style.display="block";
       var zone=document.getElementById("upload-zone"); if(zone) zone.classList.add("has-file");
-      var txt=document.querySelector("#upload-zone .upload-text"); if(txt) txt.textContent="✓ "+input.files[0].name;
-      window._screenshotData=e.target.result;
+      var txt=document.querySelector("#upload-zone .upload-text"); if(txt) txt.textContent="✓ "+file.name;
+      // Keep data URL as fallback preview only
+      window._screenshotData = e.target.result;
     };
-    reader.readAsDataURL(input.files[0]);
+    reader.readAsDataURL(file);
   }
 }
 function buildSummary(){
