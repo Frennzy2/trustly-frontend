@@ -2077,1183 +2077,880 @@ nav.scrolled {
 
 <!-- ══ JAVASCRIPT ══ -->
 <script>
-// ═══════════════════════════════════════════════════════
-// TRUSTLY RWANDA — LIVE API CONNECTION
-// ═══════════════════════════════════════════════════════
-const API_URL = 'https://trustly-today24747447.vercel.app/api';
-
-// API helper function
-async function api(endpoint, options) {
-  options = options || {};
-  try {
-    var res = await fetch(API_URL + endpoint, {
-      method: options.method || 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': localStorage.getItem('trustly_admin_token') ? 'Bearer ' + localStorage.getItem('trustly_admin_token') : ''
-      },
-      body: options.body ? JSON.stringify(options.body) : undefined
-    });
-    return await res.json();
-  } catch(err) {
-    console.error('API error:', err);
-    return { error: 'Connection failed' };
-  }
-}
-
 
 // ═══════════════════════════════════════════════════════
-// TRUSTLY RWANDA — CLEAN JS
+// TRUSTLY RWANDA — CLEAN JAVASCRIPT
 // ═══════════════════════════════════════════════════════
 
 // ── DATA ──
-const BIZ = [
-  { id:1, name:"Rwanda Fashion Hub", handle:"@rwandafashionhub", platforms:["tiktok","instagram"], phone:"+250 788 123 456", website:"", location:"Kigali, Rwanda", trustScore:8.4, verified:true, reviewCount:142, avgRating:4.2, color:"#1A6B3A", bg:"#E6F4FC", initials:"RF", desc:"Popular clothing seller on TikTok and Instagram. Specialises in Rwandan and African-inspired fashion.", profileURL:"https://www.tiktok.com/@rwandafashionhub",
-    reviews:[
-      {id:1,user:"J.M.",rating:5,date:"2026-03-10",amount:45000,payment:"MTN MoMo",text:"Ordered two dresses and received exactly as shown. Delivery was next day within Kigali. Very impressed with the quality and the seller responded quickly.",screenshot:null,resp:"Thank you for your kind review! We work hard to ensure every order is perfect."},
-      {id:2,user:"A.K.",rating:2,date:"2026-02-28",amount:25000,payment:"MTN MoMo",text:"Paid for a jacket on February 20th. Was told delivery in 2 days. After 8 days and multiple follow-ups, I was told the item was out of stock. Refund took 3 more days.",screenshot:null,resp:"We sincerely apologise for this experience. We have improved our inventory system."},
-      {id:3,user:"C.N.",rating:4,date:"2026-03-14",amount:18000,payment:"Airtel Money",text:"Good quality shirt, slightly different shade than in the photo but still nice. Communication was good and delivery arrived on time.",screenshot:null,resp:null}
-    ]
-  },
-  { id:2, name:"TechGadgets Kigali", handle:"@techgadgetskgl", platforms:["facebook","website"], phone:"+250 722 987 654", website:"techgadgets.rw", location:"Remera, Kigali", trustScore:7.1, verified:true, reviewCount:88, avgRating:3.8, color:"#0A7EC2", bg:"#E6F4FC", initials:"TG", desc:"Electronics, accessories and gadgets. Has a Facebook page and website. Based in Remera.", profileURL:"https://www.facebook.com/techgadgetskgl",
-    reviews:[
-      {id:4,user:"P.U.",rating:4,date:"2026-03-12",amount:120000,payment:"Bank transfer",text:"Bought a laptop charger. Arrived in 2 days, product was genuine. Price was competitive.",screenshot:null,resp:null},
-      {id:5,user:"S.M.",rating:3,date:"2026-03-01",amount:35000,payment:"MTN MoMo",text:"Phone case arrived but the packaging was damaged. The product itself was fine.",screenshot:null,resp:null}
-    ]
-  },
-  { id:3, name:"FreshBakes Rwanda", handle:"@freshbakesrw", platforms:["instagram","whatsapp"], phone:"+250 735 456 789", website:"", location:"Nyamirambo, Kigali", trustScore:9.2, verified:true, reviewCount:214, avgRating:4.8, color:"#7B3F00", bg:"#FDF3E3", initials:"FB", desc:"Home baker offering cakes, pastries and custom orders. Delivery within Kigali.", profileURL:"https://www.instagram.com/freshbakesrw",
-    reviews:[
-      {id:6,user:"I.R.",rating:5,date:"2026-03-15",amount:35000,payment:"MTN MoMo",text:"Ordered a birthday cake with 24 hours notice. The cake looked exactly like the reference photo I sent and tasted amazing. Very reliable and professional.",screenshot:null,resp:"So glad you loved the cake! Thank you for trusting us!"}
-    ]
-  },
-  { id:4, name:"Mura Electronics", handle:"@muraelectronics", platforms:["tiktok","facebook"], phone:"+250 788 999 000", website:"", location:"Kimironko, Kigali", trustScore:3.2, verified:false, reviewCount:47, avgRating:1.9, color:"#7A1C1C", bg:"#FCECEA", initials:"ME", desc:"Electronics and mobile accessories seller active on TikTok Live.", profileURL:"https://www.tiktok.com/@muraelectronics",
-    reviews:[
-      {id:7,user:"O.B.",rating:1,date:"2026-03-08",amount:80000,payment:"MTN MoMo",text:"Paid 80,000 RWF for a phone on March 8th. As of March 14th, no delivery and no response to messages.",screenshot:null,resp:null},
-      {id:8,user:"F.N.",rating:2,date:"2026-02-20",amount:45000,payment:"MTN MoMo",text:"Received a phone but it was a different model than what was advertised.",screenshot:null,resp:null}
-    ]
-  },
-  { id:5, name:"Ishema Boutique", handle:"@ishemaboutique", platforms:["instagram","tiktok"], phone:"+250 729 111 222", website:"", location:"Kacyiru, Kigali", trustScore:7.9, verified:true, reviewCount:63, avgRating:4.0, color:"#4A1C8C", bg:"#F0EAFF", initials:"IB", desc:"Women's fashion and accessories. Known for Ankara prints and modern Rwandan fashion.", profileURL:"https://www.instagram.com/ishemaboutique",
-    reviews:[
-      {id:9,user:"G.M.",rating:4,date:"2026-03-11",amount:30000,payment:"MTN MoMo",text:"Beautiful dress, very good quality. Took 3 days to deliver which was slightly longer than promised but overall happy.",screenshot:null,resp:null}
-    ]
-  }
+var BIZ = [
+  { id:1, name:"Rwanda Fashion Hub", handle:"@rwandafashionhub", platforms:["tiktok","instagram"], phone:"+250 788 123 456", website:"", location:"Kigali, Rwanda", trustScore:8.4, verified:true, reviewCount:142, avgRating:4.2, color:"#1A6B3A", bg:"#E8F5E8", initials:"RF", desc:"Popular clothing seller on TikTok and Instagram. Specialises in Rwandan and African-inspired fashion.", profileURL:"https://www.tiktok.com/@rwandafashionhub", reviews:[] },
+  { id:2, name:"TechGadgets Kigali", handle:"@techgadgetskgl", platforms:["facebook","website"], phone:"+250 722 987 654", website:"techgadgets.rw", location:"Remera, Kigali", trustScore:7.1, verified:true, reviewCount:88, avgRating:3.8, color:"#0A7EC2", bg:"#E6F4FC", initials:"TG", desc:"Electronics, accessories and gadgets. Based in Remera.", profileURL:"https://www.facebook.com/techgadgetskgl", reviews:[] },
+  { id:3, name:"FreshBakes Rwanda", handle:"@freshbakesrw", platforms:["instagram","whatsapp"], phone:"+250 735 456 789", website:"", location:"Nyamirambo, Kigali", trustScore:9.2, verified:true, reviewCount:214, avgRating:4.8, color:"#7B3F00", bg:"#FDF3E3", initials:"FB", desc:"Home baker offering cakes, pastries and custom orders.", profileURL:"https://www.instagram.com/freshbakesrw", reviews:[] },
+  { id:4, name:"Mura Electronics", handle:"@muraelectronics", platforms:["tiktok","facebook"], phone:"+250 788 999 000", website:"", location:"Kimironko, Kigali", trustScore:3.2, verified:false, reviewCount:47, avgRating:1.9, color:"#7A1C1C", bg:"#FCECEA", initials:"ME", desc:"Electronics and mobile accessories seller active on TikTok Live.", profileURL:"https://www.tiktok.com/@muraelectronics", reviews:[] },
+  { id:5, name:"Ishema Boutique", handle:"@ishemaboutique", platforms:["instagram","tiktok"], phone:"+250 729 111 222", website:"", location:"Kacyiru, Kigali", trustScore:7.9, verified:true, reviewCount:63, avgRating:4.0, color:"#4A1C8C", bg:"#F0EAFF", initials:"IB", desc:"Women's fashion and accessories. Known for Ankara prints.", profileURL:"https://www.instagram.com/ishemaboutique", reviews:[] }
 ];
 
-const PENDING = [
-  {id:101,phone:"078X XXX 001",biz:"Kigali Phones Hub",platform:"TikTok",amount:"55,000",date:"2026-03-20",status:"pending",text:"Ordered a phone on March 18th, paid via MoMo, still waiting after 4 days."},
-  {id:102,phone:"072X XXX 002",biz:"Fashion Deals RW",platform:"Instagram",amount:"18,500",date:"2026-03-19",status:"pending",text:"Good experience, received my order within 24 hours. Will order again."},
-  {id:103,phone:"073X XXX 003",biz:"Mura Electronics",platform:"TikTok",amount:"90,000",date:"2026-03-19",status:"pending",text:"Paid for a tablet on March 15th. No update since then."},
-  {id:104,phone:"078X XXX 004",biz:"HomeDecor Kigali",platform:"Facebook",amount:"42,000",date:"2026-03-18",status:"flagged",text:"[FLAGGED: Contains personal insults — sent back for editing]"},
-  {id:105,phone:"072X XXX 005",biz:"Rwanda Cosmetics",platform:"Instagram",amount:"12,000",date:"2026-03-17",status:"pending",text:"Fast delivery and excellent product. Exactly as described."}
-];
-
-const MODLOG = [
+var MODLOG = [
   {time:"2026-03-21 14:32",admin:"admin@trustly.rw",action:"Approved",biz:"FreshBakes Rwanda",notes:"Clean review, verified payment proof"},
   {time:"2026-03-21 13:55",admin:"admin@trustly.rw",action:"Rejected",biz:"Unknown seller",notes:"No evidence provided"},
-  {time:"2026-03-21 12:10",admin:"admin@trustly.rw",action:"Edited",biz:"Rwanda Fashion Hub",notes:"Removed one insult, rest factual"},
-  {time:"2026-03-21 11:40",admin:"mod2@trustly.rw",action:"Approved",biz:"TechGadgets Kigali",notes:"Verified buyer, screenshot attached"},
-  {time:"2026-03-21 10:22",admin:"mod2@trustly.rw",action:"Flagged",biz:"HomeDecor Kigali",notes:"Contains hate speech"}
+  {time:"2026-03-21 12:10",admin:"admin@trustly.rw",action:"Edited",biz:"Rwanda Fashion Hub",notes:"Removed one insult, rest factual"}
 ];
 
-let nextId = 100;
-let activeFilter = 'all';
-let currentRating = 0;
-let otpVerified = false;
-let pageViewCount = 0;
-let popupShown = false;
-let adIndex = 0;
-let skipTimer = null;
-let lockoutTimer = null;
-let loginAttempts = 0;
+var nextId = 100;
+var activeFilter = "all";
+var currentRating = 0;
+var pageViewCount = 0;
+var popupShown = false;
+var adIndex = 0;
+var skipTimer = null;
+var lockoutTimer = null;
+var loginAttempts = 0;
+var ADMIN_CREDS = {username:"admin", password:"DaVy@S24"};
+var API_URL = "https://trustly-today24747447.vercel.app/api";
+var SUPABASE_URL = "https://wvgbupmhtpxixootixsm.supabase.co";
+var SUPABASE_KEY = "sb_publishable_UrqILEwUMFIBmuLvRR3-nA_Xu5eL-X6";
+
+// ── API - Vercel backend ──
+function api(endpoint, options) {
+  options = options || {};
+  return fetch(API_URL + endpoint, {
+    method: options.method || "GET",
+    headers: {"Content-Type": "application/json"},
+    body: options.body ? JSON.stringify(options.body) : undefined
+  }).then(function(r){ return r.json(); }).catch(function(){ return {error:"offline"}; });
+}
+
+// ── SUPABASE direct calls ──
+function sbFetch(table, params) {
+  var url = SUPABASE_URL + "/rest/v1/" + table + "?" + (params||"");
+  return fetch(url, {
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation"
+    }
+  }).then(function(r){ return r.json(); }).catch(function(){ return []; });
+}
+
+function sbInsert(table, data) {
+  return fetch(SUPABASE_URL + "/rest/v1/" + table, {
+    method: "POST",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation"
+    },
+    body: JSON.stringify(data)
+  }).then(function(r){ return r.json(); }).catch(function(){ return {error:"offline"}; });
+}
+
+function sbUpdate(table, id, data) {
+  return fetch(SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + id, {
+    method: "PATCH",
+    headers: {
+      "apikey": SUPABASE_KEY,
+      "Authorization": "Bearer " + SUPABASE_KEY,
+      "Content-Type": "application/json",
+      "Prefer": "return=representation"
+    },
+    body: JSON.stringify(data)
+  }).then(function(r){ return r.json(); }).catch(function(){ return {error:"offline"}; });
+}
+
+// ── REVIEW STORAGE ──
+function getPending() {
+  try { return JSON.parse(localStorage.getItem("tr_pending") || "[]"); } catch(e) { return []; }
+}
+function getApproved() {
+  try { return JSON.parse(localStorage.getItem("tr_approved") || "{}"); } catch(e) { return {}; }
+}
+function saveNewReview(review) {
+  var list = getPending();
+  list.unshift(review);
+  localStorage.setItem("tr_pending", JSON.stringify(list));
+}
+function approveReview(rid) {
+  rid = String(rid);
+  var pending = getPending();
+  var approved = getApproved();
+  var found = null;
+  var rest = [];
+  pending.forEach(function(r){ if(String(r.id)===rid){found=r;}else{rest.push(r);} });
+  if(!found) return null;
+  var key = String(found.bizId);
+  if(!approved[key]) approved[key] = [];
+  found.status = "approved";
+  approved[key].unshift(found);
+  localStorage.setItem("tr_pending", JSON.stringify(rest));
+  localStorage.setItem("tr_approved", JSON.stringify(approved));
+  return found;
+}
+function rejectReview(rid) {
+  rid = String(rid);
+  var rest = getPending().filter(function(r){ return String(r.id)!==rid; });
+  localStorage.setItem("tr_pending", JSON.stringify(rest));
+}
+function getBusinessReviews(bizId) {
+  var approved = getApproved();
+  return approved[String(bizId)] || [];
+}
 
 // ── HELPERS ──
 function stars(r, n) {
   n = n || 5;
-  var s = '<span class="stars">';
-  for (var i = 1; i <= n; i++) s += '<span class="' + (i <= Math.round(r) ? 'star' : 'star-e') + '">★</span>';
-  return s + '</span>';
+  var s = "<span class='stars'>";
+  for(var i=1;i<=n;i++) s += "<span class='" + (i<=Math.round(r)?"star":"star-e") + "'>&#9733;</span>";
+  return s + "</span>";
 }
-function tcol(s) { return s >= 8 ? '#0A7EC2' : s >= 5 ? 'var(--rw-yellow)' : 'var(--red)'; }
-function plLabel(p) { return {tiktok:'TikTok',instagram:'Instagram',facebook:'Facebook',website:'Website',whatsapp:'WhatsApp'}[p] || p; }
-function plIcon(p)  { return {tiktok:'🎵',instagram:'📸',facebook:'👥',website:'🌐',whatsapp:'💬'}[p] || '🏪'; }
-
-function getPlatformURL(platform, handle) {
-  var h = (handle || '').replace(/^@/, '').trim();
-  if (!h) return '';
-  if (platform === 'tiktok')    return 'https://www.tiktok.com/@' + h;
-  if (platform === 'instagram') return 'https://www.instagram.com/' + h;
-  if (platform === 'facebook')  return 'https://www.facebook.com/' + h;
-  if (platform === 'website')   return h.startsWith('http') ? h : 'https://' + h;
-  if (platform === 'whatsapp')  return 'https://wa.me/' + h.replace(/[^0-9]/g, '');
-  return '';
-}
-
+function tcol(s){ return s>=8?"var(--rw-green)":s>=5?"var(--rw-yellow)":"var(--red)"; }
+function plLabel(p){ return {tiktok:"TikTok",instagram:"Instagram",facebook:"Facebook",website:"Website",whatsapp:"WhatsApp"}[p]||p; }
+function plIcon(p){ return {tiktok:"&#127925;",instagram:"&#128247;",facebook:"&#128101;",website:"&#127760;",whatsapp:"&#128172;"}[p]||"&#128279;"; }
 function calcTrustScore(reviews) {
-  if (!reviews || !reviews.length) return 0;
-  var avg = reviews.reduce(function(s, r) { return s + r.rating; }, 0) / reviews.length;
-  var vol = Math.min(reviews.length / 50 * 2, 2);
-  return Math.round(Math.min(avg / 5 * 8 + vol, 10) * 10) / 10;
+  if(!reviews||!reviews.length) return 0;
+  var avg = reviews.reduce(function(s,r){return s+r.rating;},0)/reviews.length;
+  return Math.round(Math.min(avg/5*8+Math.min(reviews.length/50*2,2),10)*10)/10;
 }
-
 function calcAvgRating(reviews) {
-  if (!reviews || !reviews.length) return 0;
-  return Math.round(reviews.reduce(function(s, r) { return s + r.rating; }, 0) / reviews.length * 10) / 10;
+  if(!reviews||!reviews.length) return 0;
+  return Math.round(reviews.reduce(function(s,r){return s+r.rating;},0)/reviews.length*10)/10;
+}
+function getPlatformURL(platform, handle) {
+  var h = (handle||"").replace(/^@/,"").trim();
+  if(!h) return "";
+  if(platform==="tiktok")    return "https://www.tiktok.com/@"+h;
+  if(platform==="instagram") return "https://www.instagram.com/"+h;
+  if(platform==="facebook")  return "https://www.facebook.com/"+h;
+  if(platform==="website")   return h.startsWith("http")?h:"https://"+h;
+  if(platform==="whatsapp")  return "https://wa.me/"+h.replace(/[^0-9]/g,"");
+  return "";
 }
 
 // ── NAVIGATION ──
 function go(pg) {
-  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
-  var pageEl = document.getElementById('page-' + pg);
-  if (pageEl) pageEl.classList.add('active');
-  document.querySelectorAll('.nav-link').forEach(function(l) { l.classList.remove('active'); });
-  var nl = document.getElementById('nl-' + pg);
-  if (nl) nl.classList.add('active');
-  window.scrollTo({top: 0, behavior: 'smooth'});
-  // Refresh admin data every time admin page is opened
-  if (pg === 'admin') {
-    renderAdminPending();
-    renderAdminAccounts();
-  }
+  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
+  var el = document.getElementById("page-"+pg);
+  if(el) el.classList.add("active");
+  document.querySelectorAll(".nav-link").forEach(function(l){l.classList.remove("active");});
+  var nl = document.getElementById("nl-"+pg);
+  if(nl) nl.classList.add("active");
+  window.scrollTo({top:0,behavior:"smooth"});
+  if(pg==="admin"){ renderAdminPending(); renderAdminAccounts(); }
 }
-
-function toggleMenu() {
-  var m = document.getElementById('mobile-menu');
-  if (m) m.classList.toggle('open');
+function toggleMenu(){
+  var m = document.getElementById("mobile-menu");
+  if(m) m.classList.toggle("open");
 }
-
-document.addEventListener('click', function(e) {
-  if (!e.target.closest('nav') && !e.target.closest('.mobile-menu')) {
-    var m = document.getElementById('mobile-menu');
-    if (m) m.classList.remove('open');
+document.addEventListener("click", function(e){
+  if(!e.target.closest("nav")&&!e.target.closest(".mobile-menu")){
+    var m=document.getElementById("mobile-menu"); if(m) m.classList.remove("open");
   }
 });
 
 // ── SEARCH ──
-function setTab(el, type) {
-  document.querySelectorAll('.stab').forEach(function(t) { t.classList.remove('active'); });
-  el.classList.add('active');
-  document.getElementById('q').placeholder = el.dataset.ph || 'Search…';
-  document.getElementById('q').focus();
+function setTab(el, type){
+  document.querySelectorAll(".stab").forEach(function(t){t.classList.remove("active");});
+  el.classList.add("active");
+  var inp = document.getElementById("q");
+  if(inp){ inp.placeholder = el.dataset.ph||"Search..."; inp.focus(); }
 }
-
-function fillSearch(v) {
-  document.getElementById('q').value = v;
-  doSearch();
+function fillSearch(v){
+  var el = document.getElementById("q"); if(el) el.value=v; doSearch();
 }
-
-function clearSearch() {
-  document.getElementById('q').value = '';
-  document.getElementById('results-label').innerHTML = 'Showing <strong>all recently reviewed</strong> businesses';
-  renderBizList(activeFilter === 'all' ? BIZ : BIZ.filter(function(b) { return b.platforms.includes(activeFilter); }));
+function clearSearch(){
+  var el = document.getElementById("q"); if(el) el.value="";
+  var lbl = document.getElementById("results-label");
+  if(lbl) lbl.innerHTML = "Showing <strong>all recently reviewed</strong> businesses";
+  renderBizList(activeFilter==="all"?BIZ:BIZ.filter(function(b){return b.platforms.includes(activeFilter);}));
 }
-
-function doSearch() {
-  var raw = document.getElementById('q').value.trim();
+function doSearch(){
+  var raw = (document.getElementById("q")||{}).value||"";
+  raw = raw.trim();
+  if(!raw){ clearSearch(); return; }
+  runSearch(raw, true);
+}
+function liveSearch(val){
+  var raw = (val||"").trim();
+  if(!raw){ clearSearch(); return; }
+  runSearch(raw, false);
+}
+function runSearch(raw, scroll){
   var q = raw.toLowerCase();
-  if (!q) { clearSearch(); return; }
-  runSearch(raw, q, true);
-}
-
-function liveSearch(val) {
-  var q = val.trim().toLowerCase();
-  if (!q) { clearSearch(); return; }
-  runSearch(val.trim(), q, false);
-}
-
-function runSearch(raw, q, scroll) {
-  var lbl = document.getElementById('results-label');
-  lbl.innerHTML = 'Searching…';
-
-  // Search real database first
-  api('/search?q=' + encodeURIComponent(q) + '&platform=' + activeFilter).then(function(data) {
-    if (data.error) {
-      // Fallback to local data if API fails
-      searchLocal(raw, q, scroll);
-      return;
-    }
-    if (data.results && data.results.length > 0) {
-      // Merge API results into BIZ array
-      data.results.forEach(function(r) {
-        var exists = BIZ.find(function(b) { return b.id === r.id; });
-        if (!exists) {
-          BIZ.push(apiAccountToBiz(r));
-        }
-      });
-      var res = data.results.map(function(r) {
-        return BIZ.find(function(b) { return b.id === r.id; }) || apiAccountToBiz(r);
-      });
-      lbl.innerHTML = 'Found <strong>' + res.length + ' result' + (res.length !== 1 ? 's' : '') + '</strong> for "<strong>' + raw + '</strong>"';
-      renderBizList(res);
-    } else {
-      lbl.innerHTML = 'No results for "<strong>' + raw + '</strong>"';
-      showNotFoundPrompt(raw);
-    }
+  var lbl = document.getElementById("results-label");
+  var res = BIZ.filter(function(b){
+    return b.name.toLowerCase().includes(q)||
+      b.handle.toLowerCase().includes(q)||
+      b.phone.replace(/\s/g,"").includes(q.replace(/\s/g,""))||
+      (b.website&&b.website.toLowerCase().includes(q));
   });
-
-  if (scroll) {
-    var el = document.getElementById('biz-list');
-    if (el) el.scrollIntoView({behavior:'smooth', block:'start'});
-  }
-}
-
-function searchLocal(raw, q, scroll) {
-  var res = BIZ.filter(function(b) {
-    return b.name.toLowerCase().includes(q) ||
-      b.handle.toLowerCase().includes(q) ||
-      b.phone.replace(/\s/g,'').includes(q.replace(/\s/g,'')) ||
-      (b.website && b.website.toLowerCase().includes(q));
-  });
-  var lbl = document.getElementById('results-label');
-  if (res.length > 0) {
-    lbl.innerHTML = 'Found <strong>' + res.length + ' result' + (res.length !== 1 ? 's' : '') + '</strong> for "<strong>' + raw + '</strong>"';
+  if(activeFilter!=="all") res=res.filter(function(b){return b.platforms.includes(activeFilter);});
+  if(res.length>0){
+    if(lbl) lbl.innerHTML = "Found <strong>"+res.length+" result"+(res.length!==1?"s":"")+"</strong> for \"<strong>"+raw+"</strong>\"";
     renderBizList(res);
   } else {
-    lbl.innerHTML = 'No results for "<strong>' + raw + '</strong>"';
-    showNotFoundPrompt(raw);
+    if(lbl) lbl.innerHTML = "No results for \"<strong>"+raw+"</strong>\"";
+    showNotFound(raw);
   }
+  if(scroll){var el=document.getElementById("biz-list");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
 }
-
-// Convert API account format to BIZ format
-function apiAccountToBiz(r) {
-  var colors = [{color:'#1A6B3A',bg:'#E6F4FC'},{color:'#0A7EC2',bg:'#E6F4FC'},{color:'#7B3F00',bg:'#FDF3E3'},{color:'#4A1C8C',bg:'#F0EAFF'},{color:'#7A1C1C',bg:'#FCECEA'}];
-  var ci = (r.business_name||'A').charCodeAt(0) % colors.length;
-  var initials = (r.business_name||'').split(' ').filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join('') || '??';
-  return {
-    id: r.id,
-    name: r.business_name,
-    handle: r.handle || '',
-    platforms: r.platform || [],
-    phone: r.phone_number || '',
-    website: r.website || '',
-    location: r.location || 'Rwanda',
-    trustScore: r.trust_score || 0,
-    verified: r.verification_status === 'verified',
-    reviewCount: r.review_count || 0,
-    avgRating: r.avg_rating || 0,
-    color: colors[ci].color,
-    bg: colors[ci].bg,
-    initials: initials,
-    desc: r.description || 'No description yet.',
-    profileURL: getPlatformURL((r.platform||[])[0], r.handle),
-    reviews: [],
-    _fromAPI: true,
-    _apiId: r.id
-  };
-}
-
-function showNotFoundPrompt(query) {
-  var isHandle  = query.startsWith('@');
-  var isPhone   = /^\+?250|^07[2-9]/.test(query.replace(/\s/g,''));
-  var isWebsite = /\.(rw|com|net|org)/.test(query);
-  var icon  = isHandle ? '👤' : isPhone ? '📱' : isWebsite ? '🌐' : '🏪';
-  var hint  = isHandle ? 'social media account' : isPhone ? 'phone number' : isWebsite ? 'website' : 'business';
+function showNotFound(query){
   window._lastQuery = query;
-  var el = document.getElementById('biz-list');
-  el.innerHTML =
-    '<div class="not-found-card">' +
-    '<div class="nf-icon">' + icon + '</div>' +
-    '<h3 class="nf-title">"' + query + '" is not in our database yet</h3>' +
-    '<p class="nf-sub">Be the first to review this ' + hint + '. We will create a profile page that others can find later.</p>' +
-    '<div class="nf-actions">' +
-    '<button class="btn btn-primary btn-lg" onclick="createProfileAndReview(window._lastQuery)">+ Create profile &amp; write first review</button>' +
-    '<button class="btn btn-ghost" onclick="clearSearch()">Browse all businesses</button>' +
-    '</div></div>';
+  var isHandle=query.startsWith("@"), isPhone=/^\+?250|^07/.test(query.replace(/\s/g,"")), isWeb=/\.(rw|com|net)/.test(query);
+  var icon=isHandle?"&#128100;":isPhone?"&#128241;":isWeb?"&#127760;":"&#127978;";
+  var hint=isHandle?"social media account":isPhone?"phone number":isWeb?"website":"business";
+  var el = document.getElementById("biz-list");
+  if(!el) return;
+  el.innerHTML = "<div class='not-found-card'>" +
+    "<div class='nf-icon'>"+icon+"</div>" +
+    "<h3 class='nf-title'>\""+query+"\" is not in our database yet</h3>" +
+    "<p class='nf-sub'>Be the first to review this "+hint+". We will create a profile page others can find later.</p>" +
+    "<div class='nf-actions'>" +
+    "<button class='btn btn-primary btn-lg' onclick='createProfileAndReview(window._lastQuery)'>+ Create profile &amp; write first review</button>" +
+    "<button class='btn btn-ghost' onclick='clearSearch()'>Browse all businesses</button>" +
+    "</div></div>";
 }
-
-function filterP(el, platform) {
-  document.querySelectorAll('.pf-chip').forEach(function(c) { c.classList.remove('active'); });
-  el.classList.add('active');
-  activeFilter = platform;
-  var q = document.getElementById('q').value.trim().toLowerCase();
-  var res = platform === 'all' ? BIZ.slice() : BIZ.filter(function(b) { return b.platforms.includes(platform); });
-  if (q) res = res.filter(function(b) { return b.name.toLowerCase().includes(q) || b.handle.toLowerCase().includes(q); });
+function filterP(el, platform){
+  document.querySelectorAll(".pf-chip").forEach(function(c){c.classList.remove("active");});
+  el.classList.add("active");
+  activeFilter=platform;
+  var q=(document.getElementById("q")||{}).value||"";
+  var res=platform==="all"?BIZ.slice():BIZ.filter(function(b){return b.platforms.includes(platform);});
+  if(q.trim()) res=res.filter(function(b){return b.name.toLowerCase().includes(q.toLowerCase())||b.handle.toLowerCase().includes(q.toLowerCase());});
   renderBizList(res);
 }
-
-function sortBy(v) {
-  var s = BIZ.slice();
-  if (v === 'trust')        s.sort(function(a,b) { return b.trustScore - a.trustScore; });
-  else if (v === 'reviews') s.sort(function(a,b) { return b.reviewCount - a.reviewCount; });
+function sortBy(v){
+  var s=BIZ.slice();
+  if(v==="trust") s.sort(function(a,b){return b.trustScore-a.trustScore;});
+  else if(v==="reviews") s.sort(function(a,b){return b.reviewCount-a.reviewCount;});
   renderBizList(s);
 }
 
-// ── RENDER BUSINESS LIST ──
-function renderBizList(list) {
-  var el = document.getElementById('biz-list');
-  if (!list.length) {
-    el.innerHTML = '<div style="text-align:center;padding:4rem 1rem;color:var(--ink3)">' +
-      '<div style="font-size:2.5rem;margin-bottom:1rem">🔍</div>' +
-      '<div style="font-weight:700;font-weight:700;font-size:1.125rem;color:var(--ink2);margin-bottom:0.5rem">No results found</div>' +
-      '<div style="font-size:0.9rem">Try a different name, handle, or phone number</div>' +
-      '<button class="btn btn-primary btn-sm" style="margin-top:1.25rem" onclick="go(\'submit\')">Write the first review</button>' +
-      '</div>';
+// ── RENDER BIZ LIST ──
+function renderBizList(list){
+  var el=document.getElementById("biz-list");
+  if(!el) return;
+  if(!list.length){
+    el.innerHTML="<div style='text-align:center;padding:4rem 1rem;color:var(--ink3)'>" +
+      "<div style='font-size:2.5rem;margin-bottom:1rem'>&#128269;</div>" +
+      "<div style='font-weight:700;font-size:1.125rem;color:var(--ink2);margin-bottom:0.5rem'>No results found</div>" +
+      "<div style='font-size:0.9rem'>Try a different name, handle, or phone number</div>" +
+      "<button class='btn btn-primary btn-sm' style='margin-top:1.25rem' onclick='go(\"submit\")'>Write the first review</button>" +
+      "</div>";
     return;
   }
-  el.innerHTML = list.map(function(b) {
-    var lr = b.reviews && b.reviews[0];
-    var isNew = b.isNew;
-    return '<div class="biz-card" onclick="showDetail(' + b.id + ')">' +
-      (isNew ? '<div style="background:#E6F4FC;color:#0A7EC2;font-size:0.72rem;font-weight:700;padding:5px 12px;border-radius:8px 8px 0 0;letter-spacing:0.04em;text-transform:uppercase;">🆕 New profile — be the first to review</div>' : '') +
-      '<div class="biz-top">' +
-      '<div class="biz-ava" style="background:' + b.bg + ';color:' + b.color + '">' + b.initials + '</div>' +
-      '<div class="biz-info">' +
-      '<div class="biz-name-row"><span class="biz-name">' + b.name + '</span>' +
-      '<span class="badge ' + (b.verified ? 'verified' : 'unverified') + '">' + (b.verified ? '✓ Verified' : 'Unverified') + '</span></div>' +
-      '<div class="biz-handle">' + (b.handle||'') + (b.website?' · 🌐 '+b.website:'') + (b.phone?' · '+b.phone:'') + '</div>' +
-      '<div class="biz-tags">' + b.platforms.map(function(p) { return '<span class="tag">' + plLabel(p) + '</span>'; }).join('') + '<span class="tag">📍 ' + b.location + '</span></div>' +
-      '</div>' +
-      '<div class="trust-badge">' +
-      '<div class="trust-n" style="color:' + tcol(b.trustScore) + '">' + (b.trustScore||'—') + '</div>' +
-      '<div class="trust-l">Trust</div>' +
-      '<div style="margin-top:4px">' + (b.avgRating ? stars(b.avgRating) : '<span style="font-size:0.72rem;color:var(--ink3)">No reviews</span>') + '</div>' +
-      '</div></div>' +
-      '<div class="biz-mid"><div class="biz-stat-row">' +
-      '<div class="bst"><strong>' + b.reviewCount + '</strong> review' + (b.reviewCount!==1?'s':'') + '</div>' +
-      (b.avgRating ? '<div class="bst"><strong>' + b.avgRating + '/5</strong> avg</div>' : '') +
-      '</div><button class="btn btn-ghost btn-sm" style="pointer-events:none">' + (isNew?'Write first review →':'View →') + '</button></div>' +
-      (lr ? '<div class="biz-preview"><div class="preview-quote">"' + lr.text.substring(0,140) + (lr.text.length>140?'…':'') + '"</div><div class="preview-meta">' + lr.user + ' · ' + lr.date + ' · ' + stars(lr.rating) + '</div></div>' : '') +
-      '</div>';
-  }).join('');
+  el.innerHTML=list.map(function(b){
+    var approved = getBusinessReviews(b.id);
+    var allReviews = approved.concat(b.reviews||[]);
+    var rc = allReviews.length;
+    var avg = rc>0?calcAvgRating(allReviews):b.avgRating;
+    var ts  = rc>0?calcTrustScore(allReviews):b.trustScore;
+    var lr  = allReviews[0];
+    return "<div class='biz-card' onclick='showDetail("+b.id+")'>" +
+      "<div class='biz-top'>" +
+      "<div class='biz-ava' style='background:"+b.bg+";color:"+b.color+"'>"+b.initials+"</div>" +
+      "<div class='biz-info'>" +
+      "<div class='biz-name-row'><span class='biz-name'>"+b.name+"</span>" +
+      "<span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Verified":"Unverified")+"</span></div>" +
+      "<div class='biz-handle'>"+(b.handle||"")+(b.phone?" &middot; "+b.phone:"")+(b.website?" &middot; "+b.website:"")+"</div>" +
+      "<div class='biz-tags'>"+b.platforms.map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join("")+"<span class='tag'>&#128205; "+b.location+"</span></div>" +
+      "</div>" +
+      "<div class='trust-badge'>" +
+      "<div class='trust-n' style='color:"+tcol(ts)+"'>"+(ts||"&mdash;")+"</div>" +
+      "<div class='trust-l'>Trust</div>" +
+      "<div style='margin-top:4px'>"+(avg?stars(avg):"<span style='font-size:0.72rem;color:var(--ink3)'>No reviews</span>")+"</div>" +
+      "</div></div>" +
+      "<div class='biz-mid'><div class='biz-stat-row'>" +
+      "<div class='bst'><strong>"+(rc||b.reviewCount)+"</strong> review"+(rc!==1?"s":"")+"</div>" +
+      (avg?"<div class='bst'><strong>"+avg+"/5</strong> avg</div>":"") +
+      "</div><button class='btn btn-ghost btn-sm' style='pointer-events:none'>View &rarr;</button></div>" +
+      (lr?"<div class='biz-preview'><div class='preview-quote'>\""+lr.text.substring(0,140)+(lr.text.length>140?"...":"")+"\"</div><div class='preview-meta'>"+lr.user+" &middot; "+lr.date+" &middot; "+stars(lr.rating)+"</div></div>":"") +
+      "</div>";
+  }).join("");
 }
-
-function renderRecent() {
-  var el = document.getElementById('recently-added');
-  if (!el) return;
-  var list = BIZ.slice().reverse().slice(0, 4);
-  el.innerHTML = list.map(function(b) {
-    return '<div onclick="showDetail(' + b.id + ')" style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer">' +
-      '<div style="width:30px;height:30px;border-radius:8px;background:' + b.bg + ';color:' + b.color + ';display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;flex-shrink:0">' + b.initials + '</div>' +
-      '<div style="flex:1;min-width:0"><div style="font-size:0.8125rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">' + b.name + '</div>' +
-      '<div style="font-size:0.75rem;color:var(--ink3)">' + b.reviewCount + ' review' + (b.reviewCount!==1?'s':'') + '</div></div>' +
-      '<div style="font-size:0.875rem;font-weight:800;color:' + tcol(b.trustScore) + ';flex-shrink:0">' + (b.trustScore||'New') + '</div>' +
-      '</div>';
-  }).join('');
+function renderRecent(){
+  var el=document.getElementById("recently-added");
+  if(!el) return;
+  el.innerHTML=BIZ.slice().reverse().slice(0,4).map(function(b){
+    var rc=getBusinessReviews(b.id).length||b.reviewCount;
+    var ts=b.trustScore;
+    return "<div onclick='showDetail("+b.id+")' style='display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer'>" +
+      "<div style='width:30px;height:30px;border-radius:8px;background:"+b.bg+";color:"+b.color+";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;flex-shrink:0'>"+b.initials+"</div>" +
+      "<div style='flex:1;min-width:0'><div style='font-size:0.8125rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+b.name+"</div>" +
+      "<div style='font-size:0.75rem;color:var(--ink3)'>"+rc+" review"+(rc!==1?"s":"")+"</div></div>" +
+      "<div style='font-size:0.875rem;font-weight:800;color:"+tcol(ts)+";flex-shrink:0'>"+(ts||"New")+"</div></div>";
+  }).join("");
 }
 
 // ── BUSINESS DETAIL ──
-function showDetail(id) {
-  var b = BIZ.find(function(x) { return x.id === id; });
-  if (!b) return;
-
-  // Render immediately with local data
-  renderDetailPage(id);
-
-  // Also fetch fresh data from API if it's a real DB account
-  if (b._fromAPI && b._apiId) {
-    api('/accounts/' + b._apiId).then(function(data) {
-      if (data.account && data.reviews) {
-        // Merge API reviews with any locally pending-approved ones
-        var localApproved = b.reviews.filter(function(r) { return r._localApproved; });
-        var apiReviews = data.reviews.map(function(r) {
-          return {
-            id: r.id,
-            user: r.reviewer_phone ? r.reviewer_phone.slice(0,7)+'…' : 'Anonymous',
-            rating: r.rating,
-            date: r.transaction_date || r.created_at.split('T')[0],
-            amount: r.amount_rwf,
-            payment: r.payment_method,
-            text: r.description,
-            screenshot: r.screenshot_url || null,
-            resp: r.business_responses && r.business_responses[0] ? r.business_responses[0].response_text : null
-          };
-        });
-        // Combine: API reviews first, then any locally approved ones not yet in DB
-        b.reviews = apiReviews.concat(localApproved);
-        b.reviewCount = b.reviews.length;
-        b.avgRating   = calcAvgRating(b.reviews);
-        b.trustScore  = calcTrustScore(b.reviews);
-        // Re-render detail page with fresh data
-        var detailEl = document.getElementById('detail-content');
-        if (detailEl && document.getElementById('page-detail').classList.contains('active')) {
-          renderDetailPage(id);
-        }
-      }
+function showDetail(id){
+  var b=BIZ.find(function(x){return x.id===id;});
+  if(!b) return;
+  var stored = getBusinessReviews(id);
+  if(stored.length>0){
+    b.reviews = stored.map(function(r){
+      return {id:r.id,user:r.user||"Anonymous",rating:r.rating,date:r.date,amount:r.amount,payment:r.payment,text:r.text,screenshot:r.screenshot,resp:null,status:"approved"};
     });
+    // Sort newest first
+    b.reviews.sort(function(a,b){
+      return new Date(b.date||b.id||0) - new Date(a.date||a.id||0);
+    });
+    b.reviewCount = b.reviews.length;
+    b.avgRating   = calcAvgRating(b.reviews);
+    b.trustScore  = calcTrustScore(b.reviews);
   }
+  renderDetailPage(id);
 }
+function renderDetailPage(id){
+  var b=BIZ.find(function(x){return x.id===id;});
+  if(!b) return;
+  var pos=b.reviews.filter(function(r){return r.rating>=4;}).length;
+  var neg=b.reviews.filter(function(r){return r.rating<=2;}).length;
+  var screenshots=b.reviews.filter(function(r){return r.screenshot;}).map(function(r){return r.screenshot;});
+  var profileURL=b.profileURL||getPlatformURL(b.platforms[0],b.handle);
 
-function renderDetailPage(id) {
-  var b = (typeof id === 'object') ? id : BIZ.find(function(x) { return x.id === id; });
-  if (!b) return;
-  // Use b.id from here
-  id = b.id;
-  var pos = b.reviews.filter(function(r) { return r.rating >= 4; }).length;
-  var neg = b.reviews.filter(function(r) { return r.rating <= 2; }).length;
-  var isNew = b.isNew && b.reviews.length === 0;
-  var screenshots = b.reviews.filter(function(r) { return r.screenshot; }).map(function(r) { return r.screenshot; });
-  var profileURL = b.profileURL || getPlatformURL(b.platforms[0], b.handle);
-
-  var reviewsHTML = b.reviews.map(function(r) {
-    return '<div class="review-card">' +
-      '<div class="rv-header">' +
-      '<div class="rv-user"><div class="rv-ava">' + r.user.charAt(0) + '</div>' +
-      '<div><div class="rv-name">' + r.user + '</div><div class="rv-date">' + r.date + '</div></div></div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">' + stars(r.rating) + '<span class="badge verified" style="font-size:0.68rem">✓ Verified</span></div>' +
-      '</div>' +
-      '<div class="rv-body">' + r.text + '</div>' +
-      (r.screenshot ? '<div style="margin:0.75rem 0"><div style="font-size:0.75rem;font-weight:600;color:var(--ink3);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px">📎 Proof uploaded</div>' +
-      '<img src="' + r.screenshot + '" alt="Proof" style="max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--border);cursor:pointer;object-fit:cover" onclick="openScreenshot(\'' + r.screenshot + '\')">' +
-      '</div>' : '') +
-      '<div class="rv-meta-row">' +
-      '<div class="rv-meta"><strong>Paid:</strong> ' + (r.amount ? r.amount.toLocaleString() + ' RWF' : '—') + '</div>' +
-      '<div class="rv-meta"><strong>Via:</strong> ' + (r.payment||'—') + '</div>' +
-      '</div>' +
-      (r.resp ? '<div class="biz-resp"><div class="biz-resp-label">Response from ' + b.name + '</div><div class="biz-resp-text">' + r.resp + '</div></div>' : '') +
-      '</div>';
-  }).join('');
+  var reviewsHTML=b.reviews.map(function(r){
+    return "<div class='review-card'>" +
+      "<div class='rv-header'><div class='rv-user'>" +
+      "<div class='rv-ava'>"+r.user.charAt(0)+"</div>" +
+      "<div><div class='rv-name'>"+r.user+"</div><div class='rv-date'>"+r.date+"</div></div></div>" +
+      "<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px'>"+stars(r.rating)+"<span class='badge verified' style='font-size:0.68rem'>&#10003; Verified</span></div>" +
+      "</div><div class='rv-body'>"+r.text+"</div>" +
+      (r.screenshot?"<div style='margin:0.75rem 0'><div style='font-size:0.75rem;font-weight:600;color:var(--ink3);margin-bottom:6px'>&#128206; Proof uploaded</div><img src='"+r.screenshot+"' style='max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--border);cursor:pointer;object-fit:cover' onclick='openScreenshot(\""+r.screenshot+"\")'>  </div>":"") +
+      "<div class='rv-meta-row'><div class='rv-meta'><strong>Paid:</strong> "+(r.amount?r.amount.toLocaleString()+" RWF":"&mdash;")+"</div><div class='rv-meta'><strong>Via:</strong> "+(r.payment||"&mdash;")+"</div></div>" +
+      (r.resp?"<div class='biz-resp'><div class='biz-resp-label'>Response from "+b.name+"</div><div class='biz-resp-text'>"+r.resp+"</div></div>":"") +
+      "</div>";
+  }).join("");
 
   var html =
-    '<div class="detail-hero-card">' +
-    '<div class="detail-top">' +
-    '<div class="detail-ava" style="background:' + b.bg + ';color:' + b.color + '">' + b.initials + '</div>' +
-    '<div style="flex:1;min-width:0">' +
-    '<div class="detail-name">' + b.name +
-    '<span class="badge ' + (b.verified?'verified':'unverified') + '" style="font-size:0.8rem">' + (b.verified?'✓ Verified':'Unverified') + '</span>' +
-    (b.isNew ? '<span class="badge pending-b" style="font-size:0.72rem">🆕 New</span>' : '') +
-    '</div>' +
-    '<div class="detail-handle">' +
-    (b.handle ? '<span>👤 ' + b.handle + '</span>' : '') +
-    (b.phone  ? '<span> · 📱 ' + b.phone + '</span>' : '') +
-    (b.website? '<span> · 🌐 ' + b.website + '</span>' : '') +
-    '<span> · 📍 ' + b.location + '</span>' +
-    '</div>' +
-    (profileURL ? '<a class="profile-ext-link" href="' + profileURL + '" target="_blank" rel="noopener noreferrer">' + plIcon(b.platforms[0]) + ' View on ' + plLabel(b.platforms[0]) + ' →</a>' : '') +
-    '<div class="biz-tags" style="margin:8px 0 10px">' + b.platforms.map(function(p) { return '<span class="tag">' + plLabel(p) + '</span>'; }).join('') + '</div>' +
-    '<p class="detail-desc">' + b.desc + '</p>' +
-    '</div>' +
-    '<div class="detail-score-box">' +
-    '<div class="detail-score-num" style="color:' + tcol(b.trustScore) + '">' + (b.trustScore||'—') + '</div>' +
-    '<div class="detail-score-lbl">Trust Score</div>' +
-    (b.avgRating ? '<div style="margin-top:6px">' + stars(b.avgRating) + '</div>' : '<div style="font-size:0.72rem;color:var(--ink3);margin-top:6px">No reviews yet</div>') +
-    '</div></div>' +
-    '<div class="detail-stats-row">' +
-    '<div class="ds-item"><div class="ds-num">' + b.reviewCount + '</div><div class="ds-lbl">Reviews</div></div>' +
-    '<div class="ds-item"><div class="ds-num">' + (b.avgRating||'—') + '</div><div class="ds-lbl">Avg rating</div></div>' +
-    '<div class="ds-item"><div class="ds-num" style="color:#0A7EC2">' + pos + '</div><div class="ds-lbl">Positive</div></div>' +
-    '<div class="ds-item"><div class="ds-num" style="color:var(--red)">' + neg + '</div><div class="ds-lbl">Critical</div></div>' +
-    '</div></div>' +
-    (!b.verified ? '<div class="claim-banner"><div class="claim-text"><h4>Is this your business?</h4><p>Claim your profile to respond to reviews and get verified.</p></div><button class="btn-claim" onclick="openModal(\'claim-modal\')">Claim Profile →</button></div>' : '') +
-    '<div style="display:grid;grid-template-columns:1fr 280px;gap:1.5rem">' +
-    '<div>' +
-    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px">' +
-    '<div style="font-size:0.875rem;color:var(--ink2)"><strong>' + b.reviews.length + '</strong> published review' + (b.reviews.length!==1?'s':'') + '</div>' +
-    '<button class="btn btn-primary btn-sm" onclick="goWriteReview(' + b.id + ')">+ Write a Review</button>' +
-    '</div>' +
-    (isNew ? '<div style="background:#E6F4FC;border:1px solid rgba(10,126,194,0.2);border-radius:var(--radius-lg);padding:1.5rem;text-align:center;margin-bottom:1rem"><div style="font-size:2rem;margin-bottom:0.75rem">✍️</div><div style="font-weight:700;font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:0.5rem">No reviews yet — be the first!</div><div style="font-size:0.875rem;color:var(--ink2);margin-bottom:1rem;line-height:1.6">This profile was just created. Share your experience to help other buyers in Rwanda.</div><button class="btn btn-primary" onclick="goWriteReview(' + b.id + ')">Write the first review →</button></div>' : '') +
-    reviewsHTML +
-    '</div>' +
-    '<div style="display:flex;flex-direction:column;gap:1rem">' +
-    (screenshots.length ? '<div class="s-card"><div class="s-title">📎 Screenshots</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' + screenshots.map(function(s) { return '<img src="'+s+'" alt="Screenshot" style="width:100%;height:80px;object-fit:cover;border-radius:7px;cursor:pointer;border:1px solid var(--border)" onclick="openScreenshot(\''+s+'\')">'; }).join('') + '</div></div>' : '') +
-    '<div class="s-card"><div class="s-title">Trust Breakdown</div>' +
-    '<div class="tb-row"><span class="tb-label">Overall rating</span><span style="font-weight:600;color:var(--ink)">' + (b.avgRating ? b.avgRating+'/5' : 'No data') + '</span></div>' +
-    '<div class="tb-row"><span class="tb-label">Positive reviews</span><span style="font-weight:600;color:#0A7EC2">' + pos + '</span></div>' +
-    '<div class="tb-row"><span class="tb-label">Critical reviews</span><span style="font-weight:600;color:var(--red)">' + neg + '</span></div>' +
-    '<div class="tb-row"><span class="tb-label">Verified</span><span class="badge ' + (b.verified?'verified':'unverified') + '">' + (b.verified?'✓ Yes':'Not yet') + '</span></div>' +
-    '</div>' +
-    '<div class="tips-card"><div class="tips-title">⚠️ Before you buy</div><ul class="tips-list"><li>Read all reviews carefully</li><li>Ask for a receipt before paying</li><li>Confirm product is available first</li><li>For large amounts use bank transfer</li></ul></div>' +
-    '</div></div>';
+    "<div class='detail-hero-card'><div class='detail-top'>" +
+    "<div class='detail-ava' style='background:"+b.bg+";color:"+b.color+"'>"+b.initials+"</div>" +
+    "<div style='flex:1;min-width:0'>" +
+    "<div class='detail-name'>"+b.name+" <span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Verified":"Unverified")+"</span></div>" +
+    "<div class='detail-handle'>"+(b.handle?"<span>&#128100; "+b.handle+"</span>":"")+(b.phone?" <span>&middot; &#128241; "+b.phone+"</span>":"")+(b.website?" <span>&middot; &#127760; "+b.website+"</span>":"")+" <span>&middot; &#128205; "+b.location+"</span></div>" +
+    (profileURL?"<a class='profile-ext-link' href='"+profileURL+"' target='_blank' rel='noopener noreferrer'>View on "+plLabel(b.platforms[0])+" &rarr;</a>":"") +
+    "<div class='biz-tags' style='margin:8px 0 10px'>"+b.platforms.map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join("")+"</div>" +
+    "<p class='detail-desc'>"+b.desc+"</p></div>" +
+    "<div class='detail-score-box'><div class='detail-score-num' style='color:"+tcol(b.trustScore)+"'>"+(b.trustScore||"&mdash;")+"</div><div class='detail-score-lbl'>Trust Score</div>" +
+    (b.avgRating?"<div style='margin-top:6px'>"+stars(b.avgRating)+"</div>":"<div style='font-size:0.72rem;color:var(--ink3);margin-top:6px'>No reviews yet</div>") +
+    "</div></div>" +
+    "<div class='detail-stats-row'>" +
+    "<div class='ds-item'><div class='ds-num'>"+b.reviewCount+"</div><div class='ds-lbl'>Reviews</div></div>" +
+    "<div class='ds-item'><div class='ds-num'>"+(b.avgRating||"&mdash;")+"</div><div class='ds-lbl'>Avg rating</div></div>" +
+    "<div class='ds-item'><div class='ds-num' style='color:var(--rw-green)'>"+pos+"</div><div class='ds-lbl'>Positive</div></div>" +
+    "<div class='ds-item'><div class='ds-num' style='color:var(--red)'>"+neg+"</div><div class='ds-lbl'>Critical</div></div>" +
+    "</div></div>" +
+    (!b.verified?"<div class='claim-banner'><div class='claim-text'><h4>Is this your business?</h4><p>Claim your profile to respond to reviews and get verified.</p></div><button class='btn-claim' onclick='openModal(\"claim-modal\")'>Claim Profile &rarr;</button></div>":"") +
+    "<div style='display:grid;grid-template-columns:1fr 280px;gap:1.5rem'><div>" +
+    "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px'>" +
+    "<div style='font-size:0.875rem;color:var(--ink2)'><strong>"+b.reviews.length+"</strong> published review"+(b.reviews.length!==1?"s":"")+"</div>" +
+    "<button class='btn btn-primary btn-sm' onclick='goWriteReview("+b.id+")'>+ Write a Review</button>" +
+    "</div>" +
+    (b.reviews.length===0?"<div style='background:var(--rw-green-light);border:1px solid rgba(10,126,194,0.2);border-radius:var(--radius-lg);padding:1.5rem;text-align:center;margin-bottom:1rem'><div style='font-size:2rem;margin-bottom:0.75rem'>&#9998;</div><div style='font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:0.5rem'>No reviews yet &mdash; be the first!</div><button class='btn btn-primary' onclick='goWriteReview("+b.id+")'>Write the first review &rarr;</button></div>":"") +
+    reviewsHTML+"</div>" +
+    "<div style='display:flex;flex-direction:column;gap:1rem'>" +
+    (screenshots.length?"<div class='s-card'><div class='s-title'>&#128206; Screenshots</div><div style='display:grid;grid-template-columns:1fr 1fr;gap:6px'>"+screenshots.map(function(s){return "<img src='"+s+"' style='width:100%;height:80px;object-fit:cover;border-radius:7px;cursor:pointer;border:1px solid var(--border)' onclick='openScreenshot(\""+s+"\")'>";}).join("")+"</div></div>":"") +
+    "<div class='s-card'><div class='s-title'>Trust Breakdown</div>" +
+    "<div class='tb-row'><span class='tb-label'>Overall rating</span><span style='font-weight:600;color:var(--ink)'>"+(b.avgRating?b.avgRating+"/5":"No data")+"</span></div>" +
+    "<div class='tb-row'><span class='tb-label'>Positive reviews</span><span style='font-weight:600;color:var(--rw-green)'>"+pos+"</span></div>" +
+    "<div class='tb-row'><span class='tb-label'>Critical reviews</span><span style='font-weight:600;color:var(--red)'>"+neg+"</span></div>" +
+    "<div class='tb-row'><span class='tb-label'>Verified</span><span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Yes":"Not yet")+"</span></div>" +
+    "</div>" +
+    "<div class='tips-card'><div class='tips-title'>&#9888;&#65039; Before you buy</div><ul class='tips-list'><li>Read all reviews carefully</li><li>Ask for a receipt before paying</li><li>Confirm product is available first</li><li>For large amounts use bank transfer</li></ul></div>" +
+    "</div></div>";
 
-  document.getElementById('detail-content').innerHTML = html;
-  go('detail');
+  document.getElementById("detail-content").innerHTML = html;
+  go("detail");
 }
-
-
-function openScreenshot(src) {
-  var overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;cursor:pointer';
-  overlay.innerHTML = '<img src="' + src + '" style="max-width:100%;max-height:90vh;border-radius:10px">';
-  overlay.onclick = function() { document.body.removeChild(overlay); };
-  document.body.appendChild(overlay);
+function openScreenshot(src){
+  var o=document.createElement("div");
+  o.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;cursor:pointer";
+  o.innerHTML="<img src='"+src+"' style='max-width:100%;max-height:90vh;border-radius:10px'>";
+  o.onclick=function(){document.body.removeChild(o);};
+  document.body.appendChild(o);
 }
-
-function goWriteReview(bizId) {
-  window._pendingProfileId = bizId;
-  var b = BIZ.find(function(x) { return x.id === bizId; });
-  go('submit');
-  if (b) {
-    setTimeout(function() {
-      var bn = document.getElementById('f-bizname');
-      var fh = document.getElementById('f-handle');
-      var fp = document.getElementById('f-phone-biz');
-      var fw = document.getElementById('f-website');
-      if (bn) bn.value = b.name || '';
-      if (fh) fh.value = (b.handle||'').replace(/^@/,'');
-      if (fp) fp.value = b.phone || '';
-      if (fw) fw.value = b.website || '';
-      if (b.platforms[0]) {
-        document.getElementById('f-platform').value = b.platforms[0];
-        var pb = document.querySelector('.plat-btn[data-value="' + b.platforms[0] + '"]');
-        if (pb) selectPlatform(b.platforms[0], pb);
-      }
-      updateProfilePreview();
-    }, 200);
-  }
-}
-
-function createProfileAndReview(query) {
-  if (!query) return;
-  var isHandle  = query.startsWith('@');
-  var isPhone   = /^\+?250|^07[2-9]/.test(query.replace(/\s/g,''));
-  var isWebsite = /\.(rw|com|net|org)/.test(query);
-  var platforms = isHandle ? ['instagram'] : isPhone ? ['whatsapp'] : isWebsite ? ['website'] : ['other'];
-  var handle = isHandle ? query : '';
-  var phone  = isPhone  ? query : '';
-  var website= isWebsite? query : '';
-  var name   = isHandle ? query.replace('@','') : isPhone ? 'Seller '+query.slice(-4) : query;
-  var colors = [{color:'#1A6B3A',bg:'#E6F4FC'},{color:'#0A7EC2',bg:'#E6F4FC'},{color:'#7B3F00',bg:'#FDF3E3'},{color:'#4A1C8C',bg:'#F0EAFF'},{color:'#7A1C1C',bg:'#FCECEA'}];
-  var ci = name.charCodeAt(0) % colors.length;
-  var initials = name.replace(/[^a-zA-Z\s]/g,'').split(' ').filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join('') || '??';
-  var newProfile = {id:nextId++, name:name, handle:handle, phone:phone, website:website, platforms:platforms, profileURL:getPlatformURL(platforms[0],handle||query), location:'Rwanda', trustScore:0, verified:false, reviewCount:0, avgRating:0, color:colors[ci].color, bg:colors[ci].bg, initials:initials, desc:'Profile created from a search. Not yet verified.', reviews:[], isNew:true};
-  BIZ.push(newProfile);
-  renderRecent();
-  window._pendingProfileId = newProfile.id;
-  go('submit');
-  setTimeout(function() {
-    var bn = document.getElementById('f-bizname');
-    var fh = document.getElementById('f-handle');
-    var fp = document.getElementById('f-phone-biz');
-    var fw = document.getElementById('f-website');
-    if (bn) bn.value = name;
-    if (fh) fh.value = (handle||query).replace(/^@/,'');
-    if (fp && phone) fp.value = phone;
-    if (fw && website) fw.value = website;
-    document.getElementById('f-platform').value = platforms[0];
-    var pb = document.querySelector('.plat-btn[data-value="' + platforms[0] + '"]');
-    if (pb) selectPlatform(platforms[0], pb);
+function goWriteReview(bizId){
+  window._pendingProfileId=bizId;
+  var b=BIZ.find(function(x){return x.id===bizId;});
+  go("submit");
+  if(b){ setTimeout(function(){
+    var bn=document.getElementById("f-bizname"); if(bn) bn.value=b.name||"";
+    var fh=document.getElementById("f-handle"); if(fh) fh.value=(b.handle||"").replace(/^@/,"");
+    var fp=document.getElementById("f-phone-biz"); if(fp) fp.value=b.phone||"";
+    var fw=document.getElementById("f-website"); if(fw) fw.value=b.website||"";
+    if(b.platforms[0]){ document.getElementById("f-platform").value=b.platforms[0]; var pb=document.querySelector(".plat-btn[data-value='"+b.platforms[0]+"']"); if(pb) selectPlatform(b.platforms[0],pb); }
     updateProfilePreview();
-    showToast('Profile created for "' + name + '". Write the first review!', 'success');
-  }, 300);
+  },200); }
+}
+function createProfileAndReview(query){
+  if(!query) return;
+  var isHandle=query.startsWith("@"), isPhone=/^\+?250|^07/.test(query.replace(/\s/g,"")), isWeb=/\.(rw|com|net)/.test(query);
+  var platforms=isHandle?["instagram"]:isPhone?["whatsapp"]:isWeb?["website"]:["other"];
+  var handle=isHandle?query:"", phone=isPhone?query:"", website=isWeb?query:"";
+  var name=isHandle?query.replace("@",""):isPhone?"Seller "+query.slice(-4):query;
+  var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
+  var ci=name.charCodeAt(0)%cols.length;
+  var inits=name.replace(/[^a-zA-Z\s]/g,"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
+  var newP={id:Date.now(),name:name,handle:handle,phone:phone,website:website,platforms:platforms,profileURL:getPlatformURL(platforms[0],handle||query),location:"Rwanda",trustScore:0,verified:false,reviewCount:0,avgRating:0,color:cols[ci].color,bg:cols[ci].bg,initials:inits,desc:"Profile created from a search.",reviews:[]};
+  BIZ.push(newP);
+  renderRecent();
+  window._pendingProfileId=newP.id;
+  go("submit");
+  setTimeout(function(){
+    var bn=document.getElementById("f-bizname"); if(bn) bn.value=name;
+    var fh=document.getElementById("f-handle"); if(fh) fh.value=(handle||query).replace(/^@/,"");
+    var fp=document.getElementById("f-phone-biz"); if(fp&&phone) fp.value=phone;
+    var fw=document.getElementById("f-website"); if(fw&&website) fw.value=website;
+    document.getElementById("f-platform").value=platforms[0];
+    var pb=document.querySelector(".plat-btn[data-value='"+platforms[0]+"']"); if(pb) selectPlatform(platforms[0],pb);
+    updateProfilePreview();
+    showToast("Profile created for \""+name+"\". Write the first review!","success");
+  },300);
+}
+
+// ── SUBMIT REVIEW ──
+function submitReview(){
+  var bizname  = document.getElementById("f-bizname").value.trim();
+  var platform = document.getElementById("f-platform").value;
+  var handle   = document.getElementById("f-handle").value.trim().replace(/^@/,"");
+  var phone    = document.getElementById("f-phone-biz").value.trim();
+  var website  = document.getElementById("f-website").value.trim();
+  var date     = document.getElementById("f-date").value;
+  var amount   = document.getElementById("f-amount").value;
+  var payment  = document.getElementById("f-payment").value;
+  var desc     = document.getElementById("f-desc").value.trim();
+
+  var targetId = window._pendingProfileId;
+  if(!targetId){
+    var match=BIZ.find(function(b){ return (b.handle&&b.handle.replace(/^@/,"").toLowerCase()===handle.toLowerCase())||b.name.toLowerCase()===bizname.toLowerCase(); });
+    if(match) targetId=match.id;
+  }
+  if(!targetId){
+    var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
+    var ci=bizname.charCodeAt(0)%cols.length;
+    var inits=bizname.split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
+    var newBiz={id:Date.now(),name:bizname,handle:"@"+handle,phone:phone,website:website,platforms:[platform||"other"],profileURL:getPlatformURL(platform,handle),location:"Rwanda",trustScore:0,verified:false,reviewCount:0,avgRating:0,color:cols[ci].color,bg:cols[ci].bg,initials:inits,desc:"Profile created from a user review.",reviews:[]};
+    BIZ.push(newBiz);
+    targetId=newBiz.id;
+  }
+  var biz=BIZ.find(function(x){return x.id===targetId;});
+  var review={id:Date.now(),bizId:targetId,bizName:biz?biz.name:bizname,platform:platform,user:"Anonymous",rating:currentRating,date:date,amount:amount?parseInt(amount):null,payment:payment,text:desc,screenshot:window._screenshotData||null,status:"pending"};
+  // Save to localStorage (immediate, works offline)
+  saveNewReview(review);
+
+  // Also save to real Supabase database
+  var dbReview = {
+    account_id: null,
+    rating: review.rating,
+    transaction_date: review.date || null,
+    amount_rwf: review.amount || null,
+    payment_method: review.payment || null,
+    description: review.text,
+    screenshot_url: null,
+    review_status: "pending"
+  };
+
+  // Find or create account in database first
+  sbFetch("accounts", "handle=eq." + encodeURIComponent("@"+handle) + "&select=id").then(function(rows) {
+    if(rows && rows.length > 0) {
+      dbReview.account_id = rows[0].id;
+      sbInsert("reviews", dbReview);
+    } else {
+      // Create new account in database
+      sbInsert("accounts", {
+        business_name: bizname,
+        handle: "@"+handle,
+        phone_number: phone||null,
+        website: website||null,
+        platform: [platform||"other"],
+        location: "Rwanda",
+        verification_status: "unverified"
+      }).then(function(newAcct) {
+        if(newAcct && newAcct[0]) {
+          dbReview.account_id = newAcct[0].id;
+          sbInsert("reviews", dbReview);
+        }
+      });
+    }
+  });
+
+  window._pendingProfileId=null; window._screenshotData=null; currentRating=0; renderStarRating(0);
+  ["f-bizname","f-handle","f-phone-biz","f-website","f-desc","f-amount","f-date"].forEach(function(fid){var el=document.getElementById(fid);if(el)el.value="";});
+  document.getElementById("f-platform").value="";
+  document.querySelectorAll(".plat-btn").forEach(function(b){b.classList.remove("active");});
+  var prev=document.getElementById("profile-url-preview"); if(prev) prev.style.display="none";
+  toStep(1);
+  renderAdminPending();
+  showToast("Review submitted! Waiting for admin approval.","success");
+  setTimeout(function(){renderBizList(BIZ);renderRecent();showDetail(targetId);},1500);
+}
+
+// ── MODERATE REVIEW ──
+function moderateRv(reviewId, action){
+  reviewId=String(reviewId);
+  if(action==="approve"){
+    var found=approveReview(reviewId);
+    if(!found){showToast("Review not found","error");return;}
+    var biz=BIZ.find(function(b){return String(b.id)===String(found.bizId);});
+    if(biz){
+      if(!biz.reviews) biz.reviews=[];
+      biz.reviews.unshift({id:found.id,user:found.user||"Anonymous",rating:found.rating,date:found.date,amount:found.amount,payment:found.payment,text:found.text,screenshot:found.screenshot,resp:null,status:"approved"});
+      // Keep sorted newest first
+      biz.reviews.sort(function(a,b){ return new Date(b.date||b.id||0) - new Date(a.date||a.id||0); });
+      biz.reviewCount=biz.reviews.length;
+      biz.avgRating=calcAvgRating(biz.reviews);
+      biz.trustScore=calcTrustScore(biz.reviews);
+    }
+    renderBizList(BIZ); renderRecent(); renderAdminAccounts();
+
+    // Update status in real database
+    sbFetch("reviews", "description=eq."+encodeURIComponent(found.text)+"&review_status=eq.pending&select=id").then(function(rows){
+      if(rows && rows.length > 0) {
+        sbUpdate("reviews", rows[0].id, {review_status: "approved"});
+      }
+    });
+
+    showToast("Approved — review is now live on the site! ✓","success");
+  } else {
+    rejectReview(reviewId);
+    showToast("Review rejected","info");
+  }
+  renderAdminPending();
+}
+
+// ── ADMIN PENDING TABLE ──
+function renderAdminPending(){
+  var el=document.getElementById("admin-pending-tbody");
+  if(!el) return;
+  var pending=getPending();
+  var ce=document.getElementById("pending-count"); if(ce) ce.textContent=pending.length;
+  var be=document.getElementById("pending-badge"); if(be) be.textContent=pending.length+" awaiting";
+  if(!pending.length){
+    el.innerHTML="<tr><td colspan='7' style='text-align:center;padding:2rem;color:var(--ink3)'>No pending reviews ✓</td></tr>";
+    return;
+  }
+  // Sort newest submissions first
+  pending.sort(function(a,b){ return (b.id||0) - (a.id||0); });
+  el.innerHTML=pending.map(function(r){
+    return "<tr>" +
+      "<td style='font-size:0.8rem;color:var(--ink3)'>"+String(r.id).slice(-5)+"</td>" +
+      "<td><div class='rv-biz-name'>"+(r.bizName||"Unknown")+"</div><div class='rv-excerpt'>"+(r.text||"").substring(0,80)+"...</div></td>" +
+      "<td><span class='tag'>"+(r.platform||"—")+"</span></td>" +
+      "<td style='font-weight:500'>"+(r.amount?Number(r.amount).toLocaleString()+" RWF":"—")+"</td>" +
+      "<td style='font-size:0.8rem;color:var(--ink3)'>"+(r.date||"—")+"</td>" +
+      "<td><span class='badge pending-b'>pending</span></td>" +
+      "<td><div class='action-cell'>" +
+      "<button class='abtn abtn-approve' onclick='moderateRv(\""+r.id+"\",\"approve\")'>Approve</button>" +
+      "<button class='abtn abtn-reject' onclick='moderateRv(\""+r.id+"\",\"reject\")'>Reject</button>" +
+      "<button class='abtn abtn-edit' onclick='openRvDetail(\""+r.id+"\")'>View</button>" +
+      "</div></td></tr>";
+  }).join("");
+}
+
+// ── VIEW REVIEW DETAIL ──
+function openRvDetail(reviewId){
+  reviewId=String(reviewId);
+  var r=getPending().find(function(x){return String(x.id)===reviewId;});
+  if(!r){showToast("Review not found","error");return;}
+  var el=document.getElementById("rv-detail-content");
+  if(!el) return;
+  el.innerHTML=
+    "<div style='margin-bottom:1rem;display:flex;gap:8px'><span class='badge pending-b'>Pending</span><span class='tag'>"+(r.platform||"—")+"</span></div>" +
+    "<div style='background:var(--bg);border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--ink2);line-height:1.65'>" +
+    "<strong>Business:</strong> "+(r.bizName||"—")+"<br><strong>Rating:</strong> "+r.rating+"/5<br><strong>Amount:</strong> "+(r.amount?Number(r.amount).toLocaleString()+" RWF":"—")+"<br><br>"+r.text+
+    (r.screenshot?"<br><br><img src='"+r.screenshot+"' style='max-width:100%;border-radius:8px;margin-top:8px'>":"") +
+    "</div>" +
+    "<div style='display:flex;gap:8px'>" +
+    "<button class='abtn abtn-approve' style='padding:8px 16px;border-radius:8px' onclick='moderateRv(\""+r.id+"\",\"approve\");closeModal(\"rv-detail-modal\")'>Approve ✓</button>" +
+    "<button class='abtn abtn-reject' style='padding:8px 16px;border-radius:8px' onclick='moderateRv(\""+r.id+"\",\"reject\");closeModal(\"rv-detail-modal\")'>Reject</button>" +
+    "</div>";
+  openModal("rv-detail-modal");
+}
+
+// ── ADMIN ACCOUNTS TABLE ──
+function renderAdminAccounts(){
+  var el=document.getElementById("admin-accounts-tbody");
+  if(!el) return;
+  el.innerHTML=BIZ.map(function(b){
+    var rc=getBusinessReviews(b.id).length||b.reviewCount;
+    return "<tr>" +
+      "<td><div style='display:flex;align-items:center;gap:8px'>" +
+      "<div style='width:30px;height:30px;border-radius:8px;background:"+b.bg+";color:"+b.color+";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800'>"+b.initials+"</div>" +
+      "<div><div style='font-weight:500;color:var(--ink)'>"+b.name+"</div><div style='font-size:0.75rem;color:var(--ink3)'>"+b.handle+"</div></div></div></td>" +
+      "<td>"+b.platforms.map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join(" ")+"</td>" +
+      "<td style='font-size:0.8rem;color:var(--ink3)'>"+(b.phone||"—")+"</td>" +
+      "<td><strong style='color:"+tcol(b.trustScore)+"'>"+(b.trustScore||"—")+"</strong></td>" +
+      "<td>"+rc+"</td>" +
+      "<td><span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Verified":"Unverified")+"</span></td>" +
+      "<td><div class='action-cell'><button class='abtn abtn-edit' onclick='openModal(\"add-acct-modal\")'>Edit</button></div></td>" +
+      "</tr>";
+  }).join("");
 }
 
 // ── REVIEW FORM ──
-function selectPlatform(val, btn) {
-  document.getElementById('f-platform').value = val;
-  document.querySelectorAll('.plat-btn').forEach(function(b) { b.classList.remove('active'); });
-  if (btn) btn.classList.add('active');
-  var hints = {tiktok:{ph:'username (without @)',label:'TikTok username',hint:'e.g. rwandafashion'},instagram:{ph:'username (without @)',label:'Instagram username',hint:'e.g. freshbakes.rw'},facebook:{ph:'page name or username',label:'Facebook page name',hint:'e.g. TechGadgetsKigali'},website:{ph:'domain or full URL',label:'Website URL',hint:'e.g. shop.rw'},whatsapp:{ph:'+250 7XX XXX XXX',label:'WhatsApp number',hint:'Rwanda number starting with +250'},other:{ph:'name or identifier',label:'Business identifier',hint:''}};
-  var info = hints[val] || hints.other;
-  var inp = document.getElementById('f-handle');
-  var pfx = document.getElementById('handle-prefix');
-  var lbl = document.getElementById('handle-label');
-  var hint = document.getElementById('handle-hint');
-  if (inp) inp.placeholder = info.ph;
-  if (lbl) lbl.innerHTML = info.label + ' <span class="req">*</span>';
-  if (hint) hint.textContent = info.hint;
-  var social = ['tiktok','instagram','facebook'].includes(val);
-  if (pfx) pfx.style.display = social ? 'block' : 'none';
-  if (inp) { if (social) inp.classList.add('has-prefix'); else inp.classList.remove('has-prefix'); }
+function selectPlatform(val,btn){
+  document.getElementById("f-platform").value=val;
+  document.querySelectorAll(".plat-btn").forEach(function(b){b.classList.remove("active");});
+  if(btn) btn.classList.add("active");
+  var hints={tiktok:{ph:"username (without @)",label:"TikTok username",hint:"e.g. rwandafashion"},instagram:{ph:"username (without @)",label:"Instagram username",hint:"e.g. freshbakes.rw"},facebook:{ph:"page name or username",label:"Facebook page name",hint:"e.g. TechGadgetsKigali"},website:{ph:"domain or full URL",label:"Website URL",hint:"e.g. shop.rw"},whatsapp:{ph:"+250 7XX XXX XXX",label:"WhatsApp number",hint:"Rwanda number starting with +250"},other:{ph:"name or identifier",label:"Business identifier",hint:""}};
+  var info=hints[val]||hints.other;
+  var inp=document.getElementById("f-handle"); if(inp) inp.placeholder=info.ph;
+  var lbl=document.getElementById("handle-label"); if(lbl) lbl.innerHTML=info.label+" <span class='req'>*</span>";
+  var hint=document.getElementById("handle-hint"); if(hint) hint.textContent=info.hint;
+  var pfx=document.getElementById("handle-prefix"); var social=["tiktok","instagram","facebook"].includes(val);
+  if(pfx) pfx.style.display=social?"block":"none";
+  if(inp){ if(social) inp.classList.add("has-prefix"); else inp.classList.remove("has-prefix"); }
   updateProfilePreview();
 }
-
-function updateProfilePreview() {
-  var platform = document.getElementById('f-platform').value;
-  var handle   = (document.getElementById('f-handle').value || '').trim();
-  var preview  = document.getElementById('profile-url-preview');
-  var link     = document.getElementById('pup-link');
-  if (!platform || !handle || !preview) return;
-  var url = getPlatformURL(platform, handle);
-  if (!url) { if (preview) preview.style.display = 'none'; return; }
-  if (link) { link.href = url; link.textContent = url; }
-  preview.style.display = 'flex';
+function updateProfilePreview(){
+  var platform=document.getElementById("f-platform").value;
+  var handle=(document.getElementById("f-handle")||{}).value||"";
+  handle=handle.trim();
+  var preview=document.getElementById("profile-url-preview");
+  var link=document.getElementById("pup-link");
+  if(!platform||!handle||!preview){if(preview)preview.style.display="none";return;}
+  var url=getPlatformURL(platform,handle);
+  if(!url){preview.style.display="none";return;}
+  if(link){link.href=url;link.textContent=url;}
+  preview.style.display="flex";
 }
-
-function onPlatformChange() {}
-
-function toStep(n) {
-  if (n === 2) {
-    if (!document.getElementById('f-bizname').value.trim()) { showToast('Please enter the account or business name','error'); return; }
-    if (!document.getElementById('f-platform').value) { showToast('Please select a platform','error'); return; }
-    if (!document.getElementById('f-handle').value.trim()) { showToast('Please enter the handle or username','error'); return; }
+function onPlatformChange(){}
+function toStep(n){
+  if(n===2){
+    if(!document.getElementById("f-bizname").value.trim()){showToast("Please enter the account or business name","error");return;}
+    if(!document.getElementById("f-platform").value){showToast("Please select a platform","error");return;}
+    if(!document.getElementById("f-handle").value.trim()){showToast("Please enter the handle or username","error");return;}
   }
-  if (n === 3) {
-    if (!document.getElementById('f-date').value) { showToast('Please enter the transaction date','error'); return; }
-    if (!document.getElementById('f-payment').value) { showToast('Please select a payment method','error'); return; }
-    if (currentRating === 0) { showToast('Please give a rating','error'); return; }
-    if (document.getElementById('f-desc').value.trim().length < 50) { showToast('Description too short (min 50 characters)','error'); return; }
+  if(n===3){
+    if(!document.getElementById("f-date").value){showToast("Please enter the transaction date","error");return;}
+    if(!document.getElementById("f-payment").value){showToast("Please select a payment method","error");return;}
+    if(currentRating===0){showToast("Please give a rating","error");return;}
+    if(document.getElementById("f-desc").value.trim().length<50){showToast("Description too short (min 50 characters)","error");return;}
     buildSummary();
   }
-  for (var i = 1; i <= 3; i++) {
-    var fs = document.getElementById('fs' + i);
-    var sp = document.getElementById('sp' + i);
-    if (fs) fs.style.display = i === n ? 'block' : 'none';
-    if (sp) {
-      if (i < n) { sp.className = 'sp-item done'; sp.querySelector('.sp-num').textContent = '✓'; }
-      else if (i === n) { sp.className = 'sp-item active'; sp.querySelector('.sp-num').textContent = i; }
-      else { sp.className = 'sp-item'; sp.querySelector('.sp-num').textContent = i; }
-    }
-    var sl = document.getElementById('sl' + i);
-    if (sl) sl.className = 'sp-line' + (i < n ? ' done' : '');
+  for(var i=1;i<=3;i++){
+    var fs=document.getElementById("fs"+i); if(fs) fs.style.display=i===n?"block":"none";
+    var sp=document.getElementById("sp"+i);
+    if(sp){if(i<n){sp.className="sp-item done";sp.querySelector(".sp-num").textContent="✓";}else if(i===n){sp.className="sp-item active";sp.querySelector(".sp-num").textContent=i;}else{sp.className="sp-item";sp.querySelector(".sp-num").textContent=i;}}
+    var sl=document.getElementById("sl"+i); if(sl) sl.className="sp-line"+(i<n?" done":"");
   }
-  window.scrollTo({top:0, behavior:'smooth'});
+  window.scrollTo({top:0,behavior:"smooth"});
 }
-
-function setRating(r) {
-  currentRating = r;
-  document.getElementById('f-rating').value = r;
-  renderStarRating(r);
-  var hints = ['','😡 Very poor','😕 Poor','😐 Okay','😊 Good','😍 Excellent'];
-  var hint = document.getElementById('rating-hint');
-  if (hint) hint.textContent = hints[r] || '';
-}
-function hoverRating(r) { renderStarRating(r, true); }
-function resetHover()   { renderStarRating(currentRating); }
-function renderStarRating(r, hover) {
-  document.querySelectorAll('.star-rating .sr').forEach(function(s, i) {
-    s.className = 'sr' + (i < r ? ' lit' : '');
-    s.style.color = i < r ? '#E8B800' : 'var(--bg2)';
-    s.style.transform = hover && i < r ? 'scale(1.15)' : 'scale(1)';
+function setRating(r){currentRating=r;document.getElementById("f-rating").value=r;renderStarRating(r);var hints=["","😡 Very poor","😕 Poor","😐 Okay","😊 Good","😍 Excellent"];var h=document.getElementById("rating-hint");if(h)h.textContent=hints[r]||"";}
+function hoverRating(r){renderStarRating(r,true);}
+function resetHover(){renderStarRating(currentRating);}
+function renderStarRating(r,hover){
+  document.querySelectorAll(".star-rating .sr").forEach(function(s,i){
+    s.className="sr"+(i<r?" lit":"");
+    s.style.color=i<r?"#E8B800":"var(--bg2)";
+    s.style.transform=hover&&i<r?"scale(1.15)":"scale(1)";
   });
 }
-
-function countChars() {
-  var n = document.getElementById('f-desc').value.trim().length;
-  var el = document.getElementById('char-count');
-  if (el) { el.textContent = n + ' / 50 min'; el.style.color = n >= 50 ? '#0A7EC2' : 'var(--amber)'; }
-}
-
-function previewFile(input) {
-  if (input.files && input.files[0]) {
-    var reader = new FileReader();
-    reader.onload = function(e) {
-      var img = document.getElementById('upload-img');
-      var prev = document.getElementById('upload-preview');
-      var zone = document.getElementById('upload-zone');
-      var txt  = document.querySelector('#upload-zone .upload-text');
-      if (img)  img.src = e.target.result;
-      if (prev) prev.style.display = 'block';
-      if (zone) zone.classList.add('has-file');
-      if (txt)  txt.textContent = '✓ ' + input.files[0].name;
-      window._screenshotData = e.target.result;
+function countChars(){var n=document.getElementById("f-desc").value.trim().length;var el=document.getElementById("char-count");if(el){el.textContent=n+" / 50 min";el.style.color=n>=50?"var(--rw-green)":"var(--amber)";}}
+function previewFile(input){
+  if(input.files&&input.files[0]){
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var img=document.getElementById("upload-img"); if(img) img.src=e.target.result;
+      var prev=document.getElementById("upload-preview"); if(prev) prev.style.display="block";
+      var zone=document.getElementById("upload-zone"); if(zone) zone.classList.add("has-file");
+      var txt=document.querySelector("#upload-zone .upload-text"); if(txt) txt.textContent="✓ "+input.files[0].name;
+      window._screenshotData=e.target.result;
     };
     reader.readAsDataURL(input.files[0]);
   }
 }
-
-function buildSummary() {
-  var p    = document.getElementById('f-platform').value;
-  var h    = document.getElementById('f-handle').value;
-  var bn   = document.getElementById('f-bizname').value;
-  var d    = document.getElementById('f-date').value;
-  var a    = document.getElementById('f-amount').value;
-  var pm   = document.getElementById('f-payment').value;
-  var desc = document.getElementById('f-desc').value.trim();
-  var el   = document.getElementById('rv-summary');
-  if (!el) return;
-  el.innerHTML =
-    '<div class="rv-summary-title">Review Summary</div>' +
-    '<div class="rv-summary-row"><strong>Business:</strong> ' + (bn||h||'—') + ' on ' + (p||'—') + '</div>' +
-    '<div class="rv-summary-row"><strong>Date:</strong> ' + (d||'—') + '</div>' +
-    '<div class="rv-summary-row"><strong>Amount:</strong> ' + (a ? Number(a).toLocaleString()+' RWF' : '—') + ' via ' + (pm||'—') + '</div>' +
-    '<div class="rv-summary-row"><strong>Rating:</strong> ' + stars(currentRating) + ' (' + currentRating + '/5)</div>' +
-    '<div class="rv-summary-row"><strong>Review:</strong> <em>' + desc.substring(0,120) + (desc.length>120?'…':'') + '</em></div>' +
-    (window._screenshotData ? '<div class="rv-summary-row"><strong>Proof:</strong> <span style="color:#0A7EC2">✓ Screenshot attached</span></div>' : '');
-}
-
-function submitReview() {
-  // OTP verification disabled for now — enabled when WhatsApp API is connected
-  var bizname  = document.getElementById('f-bizname').value.trim();
-  var platform = document.getElementById('f-platform').value;
-  var handle   = document.getElementById('f-handle').value.trim().replace(/^@/,'');
-  var phone    = document.getElementById('f-phone-biz').value.trim();
-  var website  = document.getElementById('f-website').value.trim();
-  var date     = document.getElementById('f-date').value;
-  var amount   = document.getElementById('f-amount').value;
-  var payment  = document.getElementById('f-payment').value;
-  var desc     = document.getElementById('f-desc').value.trim();
-  var reviewer = 'Anonymous';
-  var profileURL = getPlatformURL(platform, handle);
-
-  var targetId = window._pendingProfileId;
-  if (!targetId) {
-    var match = BIZ.find(function(b) {
-      return (b.handle && b.handle.replace(/^@/,'').toLowerCase() === handle.toLowerCase()) ||
-             b.name.toLowerCase() === bizname.toLowerCase();
-    });
-    if (match) targetId = match.id;
-  }
-  if (!targetId) {
-    var colors = [{color:'#1A6B3A',bg:'#E6F4FC'},{color:'#0A7EC2',bg:'#E6F4FC'},{color:'#7B3F00',bg:'#FDF3E3'},{color:'#4A1C8C',bg:'#F0EAFF'},{color:'#7A1C1C',bg:'#FCECEA'}];
-    var ci = bizname.charCodeAt(0) % colors.length;
-    var inits = bizname.split(' ').filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join('') || handle.slice(0,2).toUpperCase() || '??';
-    var newP = {id:nextId++, name:bizname, handle:'@'+handle, phone:phone, website:website, platforms:[platform||'other'], profileURL:profileURL, location:'Rwanda', trustScore:0, verified:false, reviewCount:0, avgRating:0, color:colors[ci].color, bg:colors[ci].bg, initials:inits, desc:'Profile created from a user review.', reviews:[], isNew:false};
-    BIZ.push(newP);
-    targetId = newP.id;
-  } else {
-    var bz = BIZ.find(function(x){return x.id===targetId;});
-    if (profileURL && !bz.profileURL) bz.profileURL = profileURL;
-    if (phone && !bz.phone) bz.phone = phone;
-    if (website && !bz.website) bz.website = website;
-  }
-  var biz = BIZ.find(function(x){return x.id===targetId;});
-  // Add review as PENDING — only approved reviews show on the profile
-  var newReview = {
-    id: Date.now(),
-    user: 'Anonymous',
-    rating: currentRating,
-    date: date,
-    amount: amount ? parseInt(amount) : null,
-    payment: payment,
-    text: desc,
-    screenshot: window._screenshotData || null,
-    resp: null,
-    status: 'pending'  // MUST be approved by admin before showing
-  };
-
-  // Add to PENDING queue for admin moderation
-  PENDING.unshift({
-    id: newReview.id,
-    phone: 'New submission',
-    biz: biz.name,
-    platform: plLabel(biz.platforms[0]),
-    amount: amount ? Number(amount).toLocaleString() : '—',
-    date: date,
-    status: 'pending',
-    text: desc,
-    _reviewObj: newReview,
-    _bizId: targetId
-  });
-
-  // DO NOT add to biz.reviews yet — wait for admin approval
-  // Refresh admin panel immediately so new review appears
-  renderAdminPending();
-  // biz.reviews only gets updated when admin clicks Approve
-
-  window._pendingProfileId = null;
-  window._screenshotData   = null;
-  currentRating = 0;
-  renderStarRating(0);
-
-  // Reset form fields
-  var fields = ['f-bizname','f-handle','f-phone-biz','f-website','f-desc','f-amount','f-date'];
-  fields.forEach(function(id) { var el = document.getElementById(id); if(el) el.value=''; });
-  document.getElementById('f-platform').value = '';
-  document.querySelectorAll('.plat-btn').forEach(function(b) { b.classList.remove('active'); });
-  var prev = document.getElementById('profile-url-preview');
-  if (prev) prev.style.display = 'none';
-  var upZone = document.getElementById('upload-zone');
-  var upTxt  = document.querySelector('#upload-zone .upload-text');
-  if (upZone) upZone.classList.remove('has-file');
-  if (upTxt)  upTxt.textContent = 'Click to upload payment screenshot or chat proof';
-  var upPrev = document.getElementById('upload-preview');
-  if (upPrev) upPrev.style.display = 'none';
-
-  // Go back to step 1
-  toStep(1);
-
-  showToast('Review submitted! It will appear after admin approval (within 24h).', 'success');
-
-  // Go to the profile page so user can see it exists (but review is pending)
-  setTimeout(function() {
-    renderBizList(BIZ);
-    renderRecent();
-    renderAdminPending();
-    showDetail(targetId);
-  }, 2000);
-}
-
-// ── ADMIN ──
-function adminSwitch(el, tab) {
-  document.querySelectorAll('.atab').forEach(function(t){t.classList.remove('active');});
-  el.classList.add('active');
-  ['pending','accounts','analytics','modlog'].forEach(function(t) {
-    var c = document.getElementById('atab-content-' + t);
-    if (c) c.style.display = t === tab ? 'block' : 'none';
-  });
-}
-
-function renderAdminPending() {
-  var el = document.getElementById('admin-pending-tbody');
-  if (!el) return;
-
-  // Update count badges
-  var countEl = document.getElementById('pending-count');
-  var badgeEl = document.getElementById('pending-badge');
-  if (countEl) countEl.textContent = PENDING.length;
-  if (badgeEl) badgeEl.textContent = PENDING.length + ' awaiting';
-
-  if (PENDING.length === 0) {
-    el.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--ink3)">No pending reviews — all caught up! ✓</td></tr>';
-    return;
-  }
-
-  el.innerHTML = PENDING.map(function(r) {
-    return '<tr><td style="color:var(--ink3);font-size:0.8rem">#'+r.id+'</td>' +
-      '<td><div class="rv-biz-name">'+r.biz+'</div><div class="rv-excerpt">'+r.text+'</div></td>' +
-      '<td><span class="tag">'+r.platform+'</span></td>' +
-      '<td style="font-weight:500">'+r.amount+' RWF</td>' +
-      '<td style="white-space:nowrap;font-size:0.8rem;color:var(--ink3)">'+r.date+'</td>' +
-      '<td><span class="badge '+(r.status==='flagged'?'flagged-b':'pending-b')+'">'+r.status+'</span></td>' +
-      '<td><div class="action-cell">' +
-      '<button class="abtn abtn-approve" onclick="moderateRv('+r.id+',\'approve\')">Approve</button>' +
-      '<button class="abtn abtn-reject" onclick="moderateRv('+r.id+',\'reject\')">Reject</button>' +
-      '<button class="abtn abtn-edit" onclick="openRvDetail('+r.id+')">View</button>' +
-      '</div></td></tr>';
-  }).join('');
-}
-
-function renderAdminAccounts() {
-  var el = document.getElementById('admin-accounts-tbody');
-  if (!el) return;
-  el.innerHTML = BIZ.map(function(b) {
-    return '<tr><td><div style="display:flex;align-items:center;gap:8px">' +
-      '<div style="width:30px;height:30px;border-radius:8px;background:'+b.bg+';color:'+b.color+';display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800">'+b.initials+'</div>' +
-      '<div><div style="font-weight:500;color:var(--ink)">'+b.name+'</div><div style="font-size:0.75rem;color:var(--ink3)">'+b.handle+'</div></div></div></td>' +
-      '<td>'+b.platforms.map(function(p){return '<span class="tag">'+plLabel(p)+'</span>';}).join(' ')+'</td>' +
-      '<td style="font-size:0.8rem;color:var(--ink3)">'+(b.phone||'—')+'</td>' +
-      '<td><strong style="color:'+tcol(b.trustScore)+'">'+(b.trustScore||'—')+'</strong></td>' +
-      '<td>'+b.reviewCount+'</td>' +
-      '<td><span class="badge '+(b.verified?'verified':'unverified')+'">'+(b.verified?'✓ Verified':'Unverified')+'</span></td>' +
-      '<td><div class="action-cell"><button class="abtn abtn-edit" onclick="openModal(\'add-acct-modal\')">Edit</button>' +
-      (!b.verified ? '<button class="abtn abtn-approve" onclick="showToast(\''+b.name+' verified\',\'success\')">Verify</button>' : '') +
-      '</div></td></tr>';
-  }).join('');
-}
-
-function renderPlatformBars() {
-  var d1 = [{l:'TikTok',n:1240,c:'var(--red)'},{l:'Instagram',n:980,c:'#0A7EC2'},{l:'Facebook',n:720,c:'#0A7EC2'},{l:'Website',n:360,c:'var(--amber)'}];
-  var pb = document.getElementById('platform-bars');
-  if (pb) pb.innerHTML = d1.map(function(d) { return '<div class="platform-bar-row"><div class="platform-bar-label">'+d.l+'</div><div class="platform-bar-track"><div class="platform-bar-fill" style="width:'+Math.round(d.n/1240*100)+'%;background:'+d.c+'"></div></div><div class="platform-bar-count">'+d.n+'</div></div>'; }).join('');
-  var d2 = [{l:'MTN MoMo',n:68,c:'var(--rw-yellow)'},{l:'Airtel',n:21,c:'var(--red)'},{l:'Bank',n:8,c:'var(--rw-blue)'},{l:'Cash',n:3,c:'var(--ink3)'}];
-  var pyb = document.getElementById('payment-bars');
-  if (pyb) pyb.innerHTML = d2.map(function(d) { return '<div class="platform-bar-row"><div class="platform-bar-label" style="font-size:0.75rem">'+d.l+'</div><div class="platform-bar-track"><div class="platform-bar-fill" style="width:'+d.n+'%;background:'+d.c+'"></div></div><div class="platform-bar-count">'+d.n+'%</div></div>'; }).join('');
-  var spark = [42,38,55,71,63,80,94];
-  var max = Math.max.apply(null,spark);
-  var sp = document.getElementById('sparkline');
-  if (sp) sp.innerHTML = '<div style="display:flex;align-items:flex-end;gap:6px;height:60px;padding:0 4px">' + spark.map(function(v,i){return '<div style="flex:1;background:var(--rw-blue);border-radius:3px 3px 0 0;height:'+Math.round(v/max*56)+'px;opacity:'+(0.5+i*0.07)+'"></div>';}).join('') + '</div><div style="display:flex;justify-content:space-between;font-size:0.7rem;color:var(--ink3);margin-top:4px;padding:0 4px"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>';
-  var vf = document.getElementById('verify-funnel');
-  if (vf) vf.innerHTML = '<div style="display:flex;flex-direction:column;gap:6px;padding:0.5rem 0">' + [{l:'Businesses found',n:2847,w:100},{l:'Reviews submitted',n:1204,w:42},{l:'OTP verified',n:980,w:34},{l:'Published',n:876,w:31}].map(function(d){return '<div><div style="display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ink2);margin-bottom:3px"><span>'+d.l+'</span><span>'+d.n.toLocaleString()+'</span></div><div style="background:var(--bg2);border-radius:100px;height:6px;overflow:hidden"><div style="width:'+d.w+'%;height:100%;background:var(--rw-blue);border-radius:100px"></div></div></div>';}).join('') + '</div>';
-}
-
-function renderModLog() {
-  var el = document.getElementById('modlog-tbody');
-  if (!el) return;
-  el.innerHTML = MODLOG.map(function(l) {
-    return '<tr><td style="font-size:0.8rem;color:var(--ink3);white-space:nowrap">'+l.time+'</td><td style="font-size:0.8rem">'+l.admin+'</td><td><span class="badge '+(l.action==='Approved'?'verified':l.action==='Rejected'?'danger-b':'flagged-b')+'">'+l.action+'</span></td><td style="font-weight:500;color:var(--ink)">'+l.biz+'</td><td style="font-size:0.8rem;color:var(--ink3)">'+l.notes+'</td></tr>';
-  }).join('');
-}
-
-function moderateRv(id, action) {
-  // Find the pending entry
-  var idx = PENDING.findIndex(function(p) { return p.id === id; });
-  if (idx === -1) { showToast('Review not found','error'); return; }
-  var pending = PENDING[idx];
-
-  if (action === 'approve') {
-    // Also update in real database via API
-    api('/admin/reviews/' + id, {
-      method: 'PATCH',
-      body: { action: 'approved', notes: 'Approved by admin' }
-    });
-
-    if (pending._reviewObj && pending._bizId) {
-      var biz = BIZ.find(function(b) { return b.id === pending._bizId; });
-      if (biz) {
-        pending._reviewObj.status = 'approved';
-        pending._reviewObj._localApproved = true; // mark as locally approved
-        // Add to front so it shows first
-        biz.reviews.unshift(pending._reviewObj);
-        biz.reviewCount = biz.reviews.length;
-        biz.avgRating   = calcAvgRating(biz.reviews);
-        biz.trustScore  = calcTrustScore(biz.reviews);
-        biz.isNew = false;
-        // Re-render everything
-        renderBizList(BIZ);
-        renderRecent();
-        renderAdminAccounts();
-      }
-    }
-    showToast('Review approved and now live on the site ✓', 'success');
-    // If the detail page for this business is currently open, refresh it
-    var detailPage = document.getElementById('page-detail');
-    if (detailPage && detailPage.classList.contains('active')) {
-      var biz2 = BIZ.find(function(b) { return b.id === pending._bizId; });
-      if (biz2) renderDetailPage(biz2.id);
-    }
-
-  } else if (action === 'reject') {
-    api('/admin/reviews/' + id, {
-      method: 'PATCH',
-      body: { action: 'rejected', notes: 'Rejected by admin' }
-    });
-    showToast('Review rejected', 'info');
-
-  } else if (action === 'flag') {
-    api('/admin/reviews/' + id, {
-      method: 'PATCH',
-      body: { action: 'flagged', notes: 'Flagged for further review' }
-    });
-    showToast('Review flagged', 'info');
-  }
-
-  // Remove from pending queue
-  PENDING.splice(idx, 1);
-  renderAdminPending();
-}
-
-function openRvDetail(id) {
-  var r = PENDING.find(function(x){return x.id===id;});
-  var el = document.getElementById('rv-detail-content');
-  if (!el||!r) return;
-  el.innerHTML = '<div style="margin-bottom:1rem;display:flex;gap:8px;flex-wrap:wrap"><span class="badge pending-b">Pending</span><span class="tag">'+r.platform+'</span></div>' +
-    '<div style="background:var(--bg);border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--ink2);line-height:1.65">'+r.text+'</div>' +
-    '<div class="fgroup"><label class="flabel">Edit review (remove rule-breaking content only)</label><textarea class="ftarea" style="min-height:90px">'+r.text+'</textarea></div>' +
-    '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:1rem">' +
-    '<button class="abtn abtn-approve" style="padding:8px 16px;border-radius:8px" onclick="moderateRv('+r.id+',\'approve\');closeModal(\'rv-detail-modal\')">Approve</button>' +
-    '<button class="abtn abtn-approve" style="padding:8px 16px;border-radius:8px" onclick="showToast(\'Edited & approved\',\'success\');closeModal(\'rv-detail-modal\')">Save & approve</button>' +
-    '<button class="abtn abtn-reject" style="padding:8px 16px;border-radius:8px" onclick="moderateRv('+r.id+',\'reject\');closeModal(\'rv-detail-modal\')">Reject</button>' +
-    '</div>';
-  openModal('rv-detail-modal');
-}
-
-// ── MODALS ──
-function openModal(id)  { var el=document.getElementById(id); if(el) el.classList.add('open'); }
-function closeModal(id) { var el=document.getElementById(id); if(el) el.classList.remove('open'); }
-document.querySelectorAll('.overlay').forEach(function(o) {
-  o.addEventListener('click', function(e) { if (e.target===o) o.classList.remove('open'); });
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key==='Escape') document.querySelectorAll('.overlay.open').forEach(function(o){o.classList.remove('open');});
-});
-
-// ── TOAST ──
-var toastTimer;
-function showToast(msg, type) {
-  var t = document.getElementById('toast');
-  if (!t) return;
-  t.textContent = msg;
-  t.className = 'toast ' + (type||'');
-  clearTimeout(toastTimer);
-  setTimeout(function(){t.classList.add('show');}, 10);
-  toastTimer = setTimeout(function(){t.classList.remove('show');}, 3600);
+function buildSummary(){
+  var p=document.getElementById("f-platform").value, h=document.getElementById("f-handle").value, bn=document.getElementById("f-bizname").value;
+  var d=document.getElementById("f-date").value, a=document.getElementById("f-amount").value, pm=document.getElementById("f-payment").value;
+  var desc=document.getElementById("f-desc").value.trim();
+  var el=document.getElementById("rv-summary"); if(!el) return;
+  el.innerHTML="<div class='rv-summary-title'>Review Summary</div>" +
+    "<div class='rv-summary-row'><strong>Business:</strong> "+(bn||h||"—")+" on "+(p||"—")+"</div>" +
+    "<div class='rv-summary-row'><strong>Date:</strong> "+(d||"—")+"</div>" +
+    "<div class='rv-summary-row'><strong>Amount:</strong> "+(a?Number(a).toLocaleString()+" RWF":"—")+" via "+(pm||"—")+"</div>" +
+    "<div class='rv-summary-row'><strong>Rating:</strong> "+stars(currentRating)+" ("+currentRating+"/5)</div>" +
+    "<div class='rv-summary-row'><strong>Review:</strong> <em>"+desc.substring(0,120)+(desc.length>120?"...":"")+"</em></div>" +
+    (window._screenshotData?"<div class='rv-summary-row'><strong>Proof:</strong> <span style='color:var(--rw-green)'>✓ Screenshot attached</span></div>":"");
 }
 
 // ── ADMIN LOGIN ──
-var ADMIN_CREDS = {username:'admin', password:'DaVy@S24'};
-
-function showAdminLogin() {
-  var loginEl = document.getElementById('admin-login');
-  var logoImg = document.getElementById('login-logo-img');
-  var mainLogo = document.querySelector('.nav-brand img');
-  if (mainLogo && logoImg) logoImg.src = mainLogo.src;
-  if (loginEl) loginEl.style.display = 'flex';
-  var un = document.getElementById('admin-username');
-  var pw = document.getElementById('admin-password');
-  var er = document.getElementById('login-error');
-  var at = document.getElementById('login-attempts');
-  if (un) un.value = '';
-  if (pw) pw.value = '';
-  if (er) er.classList.remove('show');
-  if (at) at.textContent = '';
-  setTimeout(function(){ if(un) un.focus(); }, 100);
+function showAdminLogin(){
+  var loginEl=document.getElementById("admin-login"); if(loginEl) loginEl.style.display="flex";
+  var logoImg=document.getElementById("login-logo-img"); var mainLogo=document.querySelector(".nav-brand img");
+  if(mainLogo&&logoImg) logoImg.src=mainLogo.src;
+  var un=document.getElementById("admin-username"); var pw=document.getElementById("admin-password");
+  var er=document.getElementById("login-error"); var at=document.getElementById("login-attempts");
+  if(un) un.value=""; if(pw) pw.value=""; if(er) er.classList.remove("show"); if(at) at.textContent="";
+  setTimeout(function(){if(un)un.focus();},100);
 }
-
-function cancelLogin() {
-  var el = document.getElementById('admin-login');
-  if (el) el.style.display = 'none';
-}
-
-function tryLogin() {
-  if (lockoutTimer) return;
-  var username = document.getElementById('admin-username').value.trim();
-  var password = document.getElementById('admin-password').value;
-  var errorEl  = document.getElementById('login-error');
-  var attEl    = document.getElementById('login-attempts');
-  var btn      = document.getElementById('login-submit-btn');
-  var card     = document.querySelector('.login-card');
-  // Try real API login first
-  btn.textContent = 'Signing in…'; btn.disabled = true;
-  api('/admin/login', { method: 'POST', body: { email: 'admin@trustly.rw', password: password } }).then(function(data) {
-    btn.disabled = false;
-    if (data.token) {
-      // Real API login success
-      localStorage.setItem('trustly_admin_token', data.token);
-      localStorage.setItem('trustly_admin_name', data.admin.name || 'Admin');
-      loginAttempts = 0;
-      btn.textContent = '✓ Signing in…'; btn.style.background = '#0A7EC2';
-      setTimeout(function() {
-        document.getElementById('admin-login').style.display = 'none';
-        go('admin');
-        btn.textContent = 'Sign in to Dashboard'; btn.style.background = '';
-      }, 700);
-      return;
-    }
-    // Fallback to local credentials
-    if (username===ADMIN_CREDS.username && password===ADMIN_CREDS.password) {
-      loginAttempts = 0;
-      btn.textContent = '✓ Signing in…'; btn.style.background = '#0A7EC2';
-      setTimeout(function() {
-        document.getElementById('admin-login').style.display = 'none';
-        go('admin');
-        btn.textContent = 'Sign in to Dashboard'; btn.style.background = '';
-      }, 700);
-      return;
-    }
-    // Wrong credentials
-    btn.textContent = 'Sign in to Dashboard';
+function cancelLogin(){var el=document.getElementById("admin-login");if(el)el.style.display="none";}
+function tryLogin(){
+  if(lockoutTimer) return;
+  var username=document.getElementById("admin-username").value.trim();
+  var password=document.getElementById("admin-password").value;
+  var errorEl=document.getElementById("login-error");
+  var attEl=document.getElementById("login-attempts");
+  var btn=document.getElementById("login-submit-btn");
+  var card=document.querySelector(".login-card");
+  if(username===ADMIN_CREDS.username&&password===ADMIN_CREDS.password){
+    loginAttempts=0; btn.textContent="✓ Signing in..."; btn.style.background="#0A7EC2";
+    setTimeout(function(){document.getElementById("admin-login").style.display="none";go("admin");btn.textContent="Sign in to Dashboard";btn.style.background="";},700);
+  } else {
     loginAttempts++;
-    if (errorEl) errorEl.classList.add('show');
-    document.getElementById('admin-password').value = '';
-    var remaining = 5 - loginAttempts;
-    if (attEl && remaining > 0) attEl.textContent = remaining + ' attempt' + (remaining!==1?'s':'') + ' remaining';
-    if (card) {
-      card.style.transform='translateX(-8px)';
-      setTimeout(function(){card.style.transform='translateX(8px)';},80);
-      setTimeout(function(){card.style.transform='translateX(-5px)';},160);
-      setTimeout(function(){card.style.transform='translateX(5px)';},240);
-      setTimeout(function(){card.style.transform='translateX(0)';},320);
+    if(errorEl) errorEl.classList.add("show");
+    document.getElementById("admin-password").value="";
+    var remaining=5-loginAttempts;
+    if(attEl&&remaining>0) attEl.textContent=remaining+" attempt"+(remaining!==1?"s":"")+" remaining";
+    if(card){card.style.transform="translateX(-8px)";setTimeout(function(){card.style.transform="translateX(8px)";},80);setTimeout(function(){card.style.transform="translateX(-5px)";},160);setTimeout(function(){card.style.transform="translateX(5px)";},240);setTimeout(function(){card.style.transform="translateX(0)";},320);}
+    if(loginAttempts>=5){
+      var secs=30; btn.disabled=true; btn.style.background="#888";
+      if(errorEl) errorEl.textContent="Too many attempts. Locked for 30 seconds.";
+      lockoutTimer=setInterval(function(){secs--;btn.textContent="Locked — wait "+secs+"s";if(secs<=0){clearInterval(lockoutTimer);lockoutTimer=null;loginAttempts=0;btn.disabled=false;btn.textContent="Sign in to Dashboard";btn.style.background="";if(errorEl){errorEl.textContent="Incorrect username or password.";errorEl.classList.remove("show");}}},1000);
     }
-  });
-  return;
-  if (false) {
-    loginAttempts++;
-    if (errorEl) errorEl.classList.add('show');
-    document.getElementById('admin-password').value = '';
-    var remaining = 5 - loginAttempts;
-    if (attEl && remaining > 0) attEl.textContent = remaining + ' attempt' + (remaining!==1?'s':'') + ' remaining';
-    if (card) {
-      card.style.transform='translateX(-8px)';
-      setTimeout(function(){card.style.transform='translateX(8px)';},80);
-      setTimeout(function(){card.style.transform='translateX(-5px)';},160);
-      setTimeout(function(){card.style.transform='translateX(5px)';},240);
-      setTimeout(function(){card.style.transform='translateX(0)';},320);
-    }
-    if (loginAttempts >= 5) {
-      var secs = 30;
-      btn.disabled = true; btn.style.background = '#888';
-      if (errorEl) errorEl.textContent = 'Too many attempts. Locked for 30 seconds.';
-      lockoutTimer = setInterval(function() {
-        secs--;
-        btn.textContent = 'Locked — wait ' + secs + 's';
-        if (secs <= 0) {
-          clearInterval(lockoutTimer); lockoutTimer = null; loginAttempts = 0;
-          btn.disabled = false; btn.textContent = 'Sign in to Dashboard'; btn.style.background = '';
-          if (errorEl) { errorEl.textContent = 'Incorrect username or password.'; errorEl.classList.remove('show'); }
-        }
-      }, 1000);
-    }
-    var pw = document.getElementById('admin-password');
-    if (pw) pw.focus();
+    var pw=document.getElementById("admin-password"); if(pw) pw.focus();
   }
+}
+
+// ── ANALYTICS ──
+function adminSwitch(el,tab){
+  document.querySelectorAll(".atab").forEach(function(t){t.classList.remove("active");});
+  el.classList.add("active");
+  ["pending","accounts","analytics","modlog"].forEach(function(t){var c=document.getElementById("atab-content-"+t);if(c)c.style.display=t===tab?"block":"none";});
+}
+function renderPlatformBars(){
+  var d1=[{l:"TikTok",n:1240,c:"var(--red)"},{l:"Instagram",n:980,c:"#0A7EC2"},{l:"Facebook",n:720,c:"var(--rw-green)"},{l:"Website",n:360,c:"var(--amber)"}];
+  var pb=document.getElementById("platform-bars"); if(pb) pb.innerHTML=d1.map(function(d){return "<div class='platform-bar-row'><div class='platform-bar-label'>"+d.l+"</div><div class='platform-bar-track'><div class='platform-bar-fill' style='width:"+Math.round(d.n/1240*100)+"%;background:"+d.c+"'></div></div><div class='platform-bar-count'>"+d.n+"</div></div>";}).join("");
+  var d2=[{l:"MTN MoMo",n:68,c:"var(--rw-yellow)"},{l:"Airtel",n:21,c:"var(--red)"},{l:"Bank",n:8,c:"#0A7EC2"},{l:"Cash",n:3,c:"var(--ink3)"}];
+  var pyb=document.getElementById("payment-bars"); if(pyb) pyb.innerHTML=d2.map(function(d){return "<div class='platform-bar-row'><div class='platform-bar-label' style='font-size:0.75rem'>"+d.l+"</div><div class='platform-bar-track'><div class='platform-bar-fill' style='width:"+d.n+"%;background:"+d.c+"'></div></div><div class='platform-bar-count'>"+d.n+"%</div></div>";}).join("");
+  var spark=[42,38,55,71,63,80,94]; var max=Math.max.apply(null,spark);
+  var sp=document.getElementById("sparkline"); if(sp) sp.innerHTML="<div style='display:flex;align-items:flex-end;gap:6px;height:60px;padding:0 4px'>"+spark.map(function(v,i){return "<div style='flex:1;background:#0A7EC2;border-radius:3px 3px 0 0;height:"+Math.round(v/max*56)+"px;opacity:"+(0.5+i*0.07)+"'></div>";}).join("")+"</div><div style='display:flex;justify-content:space-between;font-size:0.7rem;color:var(--ink3);margin-top:4px;padding:0 4px'><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>";
+  var vf=document.getElementById("verify-funnel"); if(vf) vf.innerHTML="<div style='display:flex;flex-direction:column;gap:6px;padding:0.5rem 0'>"+[{l:"Businesses found",n:2847,w:100},{l:"Reviews submitted",n:1204,w:42},{l:"Published",n:876,w:31}].map(function(d){return "<div><div style='display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ink2);margin-bottom:3px'><span>"+d.l+"</span><span>"+d.n.toLocaleString()+"</span></div><div style='background:var(--bg2);border-radius:100px;height:6px;overflow:hidden'><div style='width:"+d.w+"%;height:100%;background:#0A7EC2;border-radius:100px'></div></div></div>";}).join("")+"</div>";
+}
+function renderModLog(){
+  var el=document.getElementById("modlog-tbody"); if(!el) return;
+  el.innerHTML=MODLOG.map(function(l){return "<tr><td style='font-size:0.8rem;color:var(--ink3);white-space:nowrap'>"+l.time+"</td><td style='font-size:0.8rem'>"+l.admin+"</td><td><span class='badge "+(l.action==="Approved"?"verified":l.action==="Rejected"?"danger-b":"flagged-b")+"'>"+l.action+"</span></td><td style='font-weight:500;color:var(--ink)'>"+l.biz+"</td><td style='font-size:0.8rem;color:var(--ink3)'>"+l.notes+"</td></tr>";}).join("");
+}
+
+// ── MODALS & TOAST ──
+function openModal(id){var el=document.getElementById(id);if(el)el.classList.add("open");}
+function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove("open");}
+document.querySelectorAll(".overlay").forEach(function(o){o.addEventListener("click",function(e){if(e.target===o)o.classList.remove("open");});});
+document.addEventListener("keydown",function(e){if(e.key==="Escape")document.querySelectorAll(".overlay.open").forEach(function(o){o.classList.remove("open");});});
+var toastTimer;
+function showToast(msg,type){
+  var t=document.getElementById("toast"); if(!t) return;
+  t.textContent=msg; t.className="toast "+(type||"");
+  clearTimeout(toastTimer);
+  setTimeout(function(){t.classList.add("show");},10);
+  toastTimer=setTimeout(function(){t.classList.remove("show");},3600);
 }
 
 // ── POPUP ADS ──
-var ADS = [
-  {url:'https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1', thumb:'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg'},
-  {url:'https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&rel=0&modestbranding=1', thumb:'https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg'}
-];
-
-function showPopupAd() {
-  var ad = ADS[adIndex % ADS.length]; adIndex++;
-  var iframe   = document.getElementById('popup-ad-iframe');
-  var thumb    = document.getElementById('popup-thumb');
-  var thumbImg = document.getElementById('popup-thumb-img');
-  var overlay  = document.getElementById('popup-ad-overlay');
-  var skipBtn  = document.getElementById('popup-skip-btn');
-  var skipTimer2 = document.getElementById('popup-skip-timer');
-  var countdown = document.getElementById('skip-countdown');
-  if (!overlay) return;
-  if (iframe)   { iframe.style.display='none'; iframe.src=''; }
-  if (thumb)    { thumb.style.display='flex'; thumb._adUrl=ad.url; }
-  if (thumbImg) thumbImg.src = ad.thumb;
-  if (skipBtn)  skipBtn.classList.remove('visible');
-  if (skipTimer2) skipTimer2.style.display = 'block';
-  if (countdown)  countdown.textContent = '5';
-  overlay.classList.add('show');
-  document.body.style.overflow = 'hidden';
-  var secs = 5;
-  clearInterval(skipTimer);
-  skipTimer = setInterval(function() {
-    secs--;
-    if (countdown) countdown.textContent = secs;
-    if (secs <= 0) {
-      clearInterval(skipTimer);
-      if (skipBtn) skipBtn.classList.add('visible');
-      if (skipTimer2) skipTimer2.style.display = 'none';
-    }
-  }, 1000);
+var ADS=[{url:"https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1",thumb:"https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg"},{url:"https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&rel=0&modestbranding=1",thumb:"https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg"}];
+function showPopupAd(){
+  var ad=ADS[adIndex%ADS.length];adIndex++;
+  var iframe=document.getElementById("popup-ad-iframe"),thumb=document.getElementById("popup-thumb"),thumbImg=document.getElementById("popup-thumb-img"),overlay=document.getElementById("popup-ad-overlay"),skipBtn=document.getElementById("popup-skip-btn"),skipTimer2=document.getElementById("popup-skip-timer"),countdown=document.getElementById("skip-countdown");
+  if(!overlay) return;
+  if(iframe){iframe.style.display="none";iframe.src="";}
+  if(thumb){thumb.style.display="flex";thumb._adUrl=ad.url;}
+  if(thumbImg) thumbImg.src=ad.thumb;
+  if(skipBtn) skipBtn.classList.remove("visible");
+  if(skipTimer2) skipTimer2.style.display="block";
+  if(countdown) countdown.textContent="5";
+  overlay.classList.add("show"); document.body.style.overflow="hidden";
+  var secs=5; clearInterval(skipTimer);
+  skipTimer=setInterval(function(){secs--;if(countdown)countdown.textContent=secs;if(secs<=0){clearInterval(skipTimer);if(skipBtn)skipBtn.classList.add("visible");if(skipTimer2)skipTimer2.style.display="none";}},1000);
 }
+function playPopupAd(){var thumb=document.getElementById("popup-thumb"),iframe=document.getElementById("popup-ad-iframe");if(iframe&&thumb){iframe.src=thumb._adUrl;iframe.style.display="block";thumb.style.display="none";}}
+function closePopupAd(){clearInterval(skipTimer);var o=document.getElementById("popup-ad-overlay");if(o)o.classList.remove("show");document.body.style.overflow="";setTimeout(function(){var i=document.getElementById("popup-ad-iframe");if(i)i.src="";},300);}
+setTimeout(function(){if(!popupShown){popupShown=true;showPopupAd();}},4000);
+var popupEl=document.getElementById("popup-ad-overlay");
+if(popupEl) popupEl.addEventListener("click",function(e){if(e.target===this)closePopupAd();});
 
-function playPopupAd() {
-  var thumb  = document.getElementById('popup-thumb');
-  var iframe = document.getElementById('popup-ad-iframe');
-  if (iframe && thumb) { iframe.src = thumb._adUrl; iframe.style.display='block'; thumb.style.display='none'; }
-}
-
-function closePopupAd() {
-  clearInterval(skipTimer);
-  var overlay = document.getElementById('popup-ad-overlay');
-  if (overlay) overlay.classList.remove('show');
-  document.body.style.overflow = '';
-  setTimeout(function() { var i=document.getElementById('popup-ad-iframe'); if(i) i.src=''; }, 300);
-}
-
-setTimeout(function() { if (!popupShown) { popupShown=true; showPopupAd(); } }, 4000);
-
-var popupEl = document.getElementById('popup-ad-overlay');
-if (popupEl) popupEl.addEventListener('click', function(e) { if(e.target===this) closePopupAd(); });
+// ── NAV SCROLL ──
+window.addEventListener("scroll",function(){var nav=document.querySelector("nav");if(nav){if(window.scrollY>10)nav.classList.add("scrolled");else nav.classList.remove("scrolled");}});
 
 // ── NOT FOUND CARD CSS ──
-var nfStyle = document.createElement('style');
-nfStyle.textContent = '.not-found-card{text-align:center;padding:3rem 1.5rem;background:var(--surface);border:1.5px dashed var(--border-strong);border-radius:var(--radius-xl)}.nf-icon{font-size:3rem;margin-bottom:1rem}.nf-title{font-weight:700;font-size:1.125rem;color:var(--ink);margin-bottom:0.5rem}.nf-sub{font-size:0.9375rem;color:var(--ink2);line-height:1.65;margin-bottom:1.5rem;max-width:420px;margin-left:auto;margin-right:auto}.nf-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}';
+var nfStyle=document.createElement("style");
+nfStyle.textContent=".not-found-card{text-align:center;padding:3rem 1.5rem;background:var(--surface);border:1.5px dashed var(--border-strong);border-radius:var(--radius-xl)}.nf-icon{font-size:3rem;margin-bottom:1rem}.nf-title{font-weight:700;font-size:1.125rem;color:var(--ink);margin-bottom:0.5rem}.nf-sub{font-size:0.9375rem;color:var(--ink2);line-height:1.65;margin-bottom:1.5rem;max-width:420px;margin-left:auto;margin-right:auto}.nf-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}";
 document.head.appendChild(nfStyle);
 
-// ── INIT — Clear demo pending reviews, load real data ──
-// Remove demo pending entries — only show real user submissions
-PENDING.length = 0;
+// ── INIT ──
+var fd=document.getElementById("f-date"); if(fd) fd.max=new Date().toISOString().split("T")[0];
 renderAdminPending();
-
-api('/accounts').then(function(data) {
-  if (data.accounts && data.accounts.length > 0) {
-    data.accounts.forEach(function(r) {
-      var exists = BIZ.find(function(b) { return b.handle === r.handle; });
-      if (!exists) BIZ.push(apiAccountToBiz(r));
-    });
-  }
-  renderBizList(BIZ);
-  renderRecent();
-});
 renderBizList(BIZ);
 renderRecent();
-renderAdminPending();
 renderAdminAccounts();
 renderPlatformBars();
 renderModLog();
-var fd = document.getElementById('f-date');
-if (fd) fd.max = new Date().toISOString().split('T')[0];
+
+// Load real accounts from Supabase on startup
+sbFetch("accounts", "select=*&order=review_count.desc").then(function(rows){
+  if(!rows || rows.error) return;
+  rows.forEach(function(r){
+    var exists = BIZ.find(function(b){ return b.handle===r.handle||b.name===r.business_name; });
+    if(!exists){
+      var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
+      var ci=(r.business_name||"A").charCodeAt(0)%cols.length;
+      var inits=(r.business_name||"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
+      BIZ.push({
+        id: r.id, name: r.business_name, handle: r.handle||"",
+        platforms: r.platform||[], phone: r.phone_number||"",
+        website: r.website||"", location: r.location||"Rwanda",
+        trustScore: r.trust_score||0, verified: r.verification_status==="verified",
+        reviewCount: r.review_count||0, avgRating: r.avg_rating||0,
+        color: cols[ci].color, bg: cols[ci].bg, initials: inits,
+        desc: r.description||"No description yet.",
+        profileURL: r.handle ? "https://www.tiktok.com/"+r.handle : "",
+        reviews: [], _dbId: r.id
+      });
+    }
+  });
+  renderBizList(BIZ);
+  renderRecent();
+});
+
+// Load approved reviews from Supabase
+sbFetch("reviews", "review_status=eq.approved&select=*,accounts(business_name,handle)&order=created_at.desc").then(function(rows){
+  if(!rows || rows.error) return;
+  rows.forEach(function(r){
+    var biz = BIZ.find(function(b){ return String(b.id)===String(r.account_id)||String(b._dbId)===String(r.account_id); });
+    if(biz){
+      var exists = biz.reviews.find(function(rv){ return String(rv.id)===String(r.id); });
+      if(!exists){
+        biz.reviews.push({
+          id: r.id, user: "Verified buyer",
+          rating: r.rating,
+          date: r.transaction_date||r.created_at.split("T")[0],
+          amount: r.amount_rwf, payment: r.payment_method,
+          text: r.description, screenshot: r.screenshot_url||null,
+          resp: null, status: "approved"
+        });
+        biz.reviews.sort(function(a,b){ return new Date(b.date||0)-new Date(a.date||0); });
+        biz.reviewCount = biz.reviews.length;
+        biz.avgRating = calcAvgRating(biz.reviews);
+        biz.trustScore = calcTrustScore(biz.reviews);
+      }
+    }
+  });
+  renderBizList(BIZ);
+});
 
 // Animated number counter
-function animateCounter(el, target, duration) {
-  if (!el) return;
-  var start = 0;
-  var startTime = null;
-  function step(timestamp) {
-    if (!startTime) startTime = timestamp;
-    var progress = Math.min((timestamp - startTime) / duration, 1);
-    var eased = 1 - Math.pow(1 - progress, 3);
-    var current = Math.floor(eased * target);
-    el.textContent = current.toLocaleString();
-    if (progress < 1) requestAnimationFrame(step);
-    else el.textContent = target.toLocaleString();
-  }
+function animateCounter(el,target,duration){
+  if(!el) return;
+  var startTime=null;
+  function step(ts){if(!startTime)startTime=ts;var p=Math.min((ts-startTime)/duration,1);var e=1-Math.pow(1-p,3);el.textContent=Math.floor(e*target).toLocaleString();if(p<1)requestAnimationFrame(step);else el.textContent=target.toLocaleString();}
   requestAnimationFrame(step);
 }
-
-// Run counters after page loads
-setTimeout(function() {
-  animateCounter(document.getElementById('stat-biz'),      2847, 1800);
-  animateCounter(document.getElementById('stat-reviews'),  14290, 2000);
-  animateCounter(document.getElementById('stat-buyers'),   9105,  1900);
-  animateCounter(document.getElementById('stat-verified'), 342,   1500);
-}, 700);
-
-// Nav shadow on scroll
-window.addEventListener('scroll', function() {
-  var nav = document.querySelector('nav');
-  if (nav) {
-    if (window.scrollY > 10) nav.classList.add('scrolled');
-    else nav.classList.remove('scrolled');
-  }
-});
+setTimeout(function(){
+  animateCounter(document.getElementById("stat-biz"),2847,1800);
+  animateCounter(document.getElementById("stat-reviews"),14290,2000);
+  animateCounter(document.getElementById("stat-buyers"),9105,1900);
+  animateCounter(document.getElementById("stat-verified"),342,1500);
+},700);
 
 </script>
 
@@ -3324,7 +3021,7 @@ window.addEventListener('scroll', function() {
         <li><a href="#">Cookie Policy</a></li>
       </ul>
       <div class="footer-contact">
-        <div class="footer-contact-item">✉ support@trustly.rw</div>
+        <div class="footer-contact-item">✉ hello@trustly.rw</div>
         <div class="footer-contact-item">📍 Kigali, Rwanda</div>
       </div>
     </div>
