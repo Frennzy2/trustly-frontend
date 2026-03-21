@@ -2614,38 +2614,63 @@ function submitReview(){
 
 // ── MODERATE REVIEW ──
 function moderateRv(reviewId, action){
-  reviewId=String(reviewId);
-  if(action==="approve"){
-    var found=approveReview(reviewId);
-    if(!found){showToast("Review not found","error");return;}
-    var biz=BIZ.find(function(b){return String(b.id)===String(found.bizId);});
-    if(biz){
-      if(!biz.reviews) biz.reviews=[];
-      biz.reviews.unshift({id:found.id,user:found.user||"Anonymous",rating:found.rating,date:found.date,amount:found.amount,payment:found.payment,text:found.text,screenshot:found.screenshot,resp:null,status:"approved"});
-      // Keep sorted newest first
-      biz.reviews.sort(function(a,b){ return new Date(b.date||b.id||0) - new Date(a.date||a.id||0); });
-      biz.reviewCount=biz.reviews.length;
-      biz.avgRating=calcAvgRating(biz.reviews);
-      biz.trustScore=calcTrustScore(biz.reviews);
-    }
-    renderBizList(BIZ); renderRecent(); renderAdminAccounts();
+  reviewId = String(reviewId);
 
-    // Update status in Supabase - search by description and pending status
-    sbFetch("reviews", "description=eq."+encodeURIComponent(found.text)+"&review_status=eq.pending&select=id&limit=1").then(function(rows){
-      console.log("Approve - found DB rows:", rows);
-      if(rows && rows.length > 0) {
-        sbUpdate("reviews", rows[0].id, {
-          review_status: "approved",
-          updated_at: new Date().toISOString()
-        }).then(function(r){ console.log("Review approved in DB:", r); });
+  if(action === "approve"){
+    // Update in Supabase directly by ID
+    sbUpdate("reviews", reviewId, {
+      review_status: "approved"
+    }).then(function(result){
+      console.log("Supabase approve result:", result);
+    });
+
+    // Also remove from localStorage pending if it's there
+    approveReview(reviewId);
+
+    // Find the review details to show on site immediately
+    sbFetch("reviews", "id=eq."+reviewId+"&select=*,accounts(business_name,handle,id,platform)").then(function(rows){
+      if(rows && rows.length > 0){
+        var r = rows[0];
+        var acct = r.accounts || {};
+        var biz = BIZ.find(function(b){
+          return String(b.id)===String(acct.id) ||
+                 String(b._dbId)===String(acct.id) ||
+                 b.handle===acct.handle;
+        });
+        if(biz){
+          if(!biz.reviews) biz.reviews=[];
+          biz.reviews.unshift({
+            id: r.id,
+            user: "Verified buyer",
+            rating: r.rating,
+            date: r.transaction_date||r.created_at.split("T")[0],
+            amount: r.amount_rwf,
+            payment: r.payment_method,
+            text: r.description,
+            screenshot: r.screenshot_url||null,
+            resp: null,
+            status: "approved"
+          });
+          biz.reviews.sort(function(a,b){ return new Date(b.date||0)-new Date(a.date||0); });
+          biz.reviewCount = biz.reviews.length;
+          biz.avgRating   = calcAvgRating(biz.reviews);
+          biz.trustScore  = calcTrustScore(biz.reviews);
+          renderBizList(BIZ);
+          renderRecent();
+        }
       }
     });
 
-    showToast("Approved — review is now live on the site! ✓","success");
-  } else {
+    showToast("Approved — review is now live! ✓","success");
+
+  } else if(action === "reject"){
+    // Update in Supabase
+    sbUpdate("reviews", reviewId, { review_status: "rejected" });
+    // Also remove from localStorage
     rejectReview(reviewId);
     showToast("Review rejected","info");
   }
+
   renderAdminPending();
 }
 
