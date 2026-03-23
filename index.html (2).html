@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trustly Rwanda — Review and Find Trusted Businesses</title>
+<title>Trustly Rwanda — Reveiw and Find Trusted Businesses</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&display=swap" rel="stylesheet">
 <style>
@@ -784,8 +784,9 @@ tr:hover td{background:var(--bg);}
    RESPONSIVE
 ══════════════════════════════════ */
 @media(max-width:900px){
-  .two-col{grid-template-columns:1fr;}
-  .sidebar-col{display:none;}
+  .two-col{display:flex; flex-direction:column;}
+  .sidebar-col{display:flex; flex-direction:column; gap:0.875rem; order:2;}
+  .results-col{order:1;}
   .detail-stats-row{grid-template-columns:repeat(2,1fr);}
   .admin-kpi-row{grid-template-columns:repeat(2,1fr);}
   .analytics-grid{grid-template-columns:1fr;}
@@ -1285,8 +1286,9 @@ img { max-width: 100%; height: auto; }
 
 /* ── BUSINESS CARDS mobile ── */
 @media(max-width: 768px) {
-  .two-col { grid-template-columns: 1fr; gap: 0; padding: 1rem 0 2rem; }
-  .sidebar-col { display: none; }
+  .two-col { display: flex; flex-direction: column; gap: 0; padding: 1rem 0 2rem; }
+  .sidebar-col { display: flex; flex-direction: column; gap: 0.875rem; order: 2; margin-top: 0.5rem; }
+  .results-col { order: 1; }
   .biz-card { padding: 1rem; margin-bottom: 0.75rem; border-radius: 12px; }
   .biz-ava { width: 44px; height: 44px; border-radius: 10px; font-size: 0.875rem; }
   .biz-name { font-size: 0.9375rem; }
@@ -1317,10 +1319,13 @@ img { max-width: 100%; height: auto; }
   /* Reviews grid - single column on mobile */
   #detail-content > div:last-child,
   .detail-wrap [style*="grid-template-columns:1fr 280px"] {
-    display: block !important;
+    display: flex !important;
+    flex-direction: column !important;
   }
   #detail-content [style*="grid-template-columns:1fr 280px"] > div:last-child {
-    display: none;
+    display: flex !important;
+    flex-direction: column !important;
+    margin-top: 1rem;
   }
 
   .review-card { padding: 1rem; border-radius: 12px; }
@@ -1845,6 +1850,72 @@ select { -webkit-appearance: menulist; }
   .admin-kpi-row { grid-template-columns: repeat(2, 1fr); }
 }
 
+
+/* ═══════════════════════════════════════
+   EXTRA MOBILE FIXES
+═══════════════════════════════════════ */
+
+/* Trust ribbon wraps on tiny screens */
+@media(max-width: 480px) {
+  .trust-ribbon {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0;
+  }
+  .ribbon-item {
+    padding: 0.5rem 0.875rem;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    flex: 0 0 50%;
+    justify-content: center;
+  }
+  .ribbon-item:nth-last-child(-n+2) { border-bottom: none; }
+}
+
+/* Nav actions - keep + Review button visible */
+@media(max-width: 768px) {
+  .nav-actions { gap: 6px; }
+  .nav-actions .btn-primary { padding: 7px 12px; font-size: 0.8rem; white-space: nowrap; }
+}
+
+/* Biz card name row wrap fix */
+@media(max-width: 480px) {
+  .biz-name-row { flex-wrap: wrap; gap: 3px; }
+  .biz-top { gap: 10px; }
+  .biz-tags { flex-wrap: wrap; gap: 4px; }
+}
+
+/* Admin table horizontal scroll on mobile */
+@media(max-width: 768px) {
+  .tcard { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tcard table { min-width: 600px; }
+  /* Hide less important columns on mobile */
+  .tcard th:nth-child(3),
+  .tcard td:nth-child(3) { display: none; }
+}
+
+/* Detail page review+sidebar stack fix */
+@media(max-width: 768px) {
+  #detail-content [style*='grid-template-columns'] {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  #detail-content [style*='grid-template-columns'] > div {
+    display: block !important;
+    width: 100% !important;
+  }
+}
+
+/* Footer fix on mobile */
+@media(max-width: 540px) {
+  .footer-top { grid-template-columns: 1fr !important; gap: 1.5rem; }
+  .footer-socials { justify-content: flex-start; }
+}
+
+/* Prevent horizontal overflow globally */
+body { overflow-x: hidden; }
+.container { overflow-x: hidden; }
 </style>
 </head>
 <body>
@@ -2321,7 +2392,12 @@ select { -webkit-appearance: menulist; }
         <!-- Review summary -->
         <div class="rv-summary" id="rv-summary"></div>
 
-
+        <!-- Reviewer phone -->
+        <div class="fgroup" style="margin-top:1.25rem">
+          <label class="flabel">Your phone number <span class="req">*</span></label>
+          <input class="finput" type="tel" id="f-reviewer-phone" placeholder="+250 7XX XXX XXX" style="font-size:1rem">
+          <div class="fhint">Used to verify your review. Format: +250 7XX XXX XXX. Never shown publicly.</div>
+        </div>
 
         <!-- Moderation notice -->
         <div class="f-notice f-notice-amber">
@@ -3071,7 +3147,7 @@ function renderBizList(list){
     var avg = rc>0?calcAvgRating(allReviews):b.avgRating;
     var ts  = rc>0?calcTrustScore(allReviews):b.trustScore;
     var lr  = allReviews[0];
-    return "<div class='biz-card' onclick='showDetail("+b.id+")'>" +
+    return "<div class='biz-card' onclick='showDetail(\""+(b.id)+"\")'>"  +
       "<div class='biz-top'>" +
       "<div class='biz-ava' style='background:"+b.bg+";color:"+b.color+"'>"+b.initials+"</div>" +
       "<div class='biz-info'>" +
@@ -3099,7 +3175,7 @@ function renderRecent(){
   el.innerHTML=BIZ.slice().reverse().slice(0,4).map(function(b){
     var rc=getBusinessReviews(b.id).length||b.reviewCount;
     var ts=b.trustScore;
-    return "<div onclick='showDetail("+b.id+")' style='display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer'>" +
+    return "<div onclick='showDetail(\""+(b.id)+"\")'"  style='display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer'>" +
       "<div style='width:30px;height:30px;border-radius:8px;background:"+b.bg+";color:"+b.color+";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;flex-shrink:0'>"+b.initials+"</div>" +
       "<div style='flex:1;min-width:0'><div style='font-size:0.8125rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+b.name+"</div>" +
       "<div style='font-size:0.75rem;color:var(--ink3)'>"+rc+" review"+(rc!==1?"s":"")+"</div></div>" +
@@ -3210,7 +3286,7 @@ function renderDetailPage(b){
     "<div style='display:grid;grid-template-columns:1fr 280px;gap:1.5rem'><div>" +
     "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px'>" +
     "<div style='font-size:0.875rem;color:var(--ink2)'><strong>"+b.reviews.length+"</strong> published review"+(b.reviews.length!==1?"s":"")+"</div>" +
-    "<button class='btn btn-primary btn-sm' onclick='goWriteReview("+b.id+")'>+ Write a Review</button>" +
+    "<button class='btn btn-primary btn-sm' onclick='goWriteReview(\""+(b.id)+"\")'>+ Write a Review</button>" +
     "</div>" +
     (b.reviews.length===0?"<div style='background:var(--rw-green-light);border:1px solid rgba(10,126,194,0.2);border-radius:var(--radius-lg);padding:1.5rem;text-align:center;margin-bottom:1rem'><div style='font-size:2rem;margin-bottom:0.75rem'>&#9998;</div><div style='font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:0.5rem'>No reviews yet &mdash; be the first!</div><button class='btn btn-primary' onclick='goWriteReview("+b.id+")'>Write the first review &rarr;</button></div>":"") +
     reviewsHTML+"</div>" +
@@ -3334,6 +3410,25 @@ function insertReviewToDB(accountId, review, screenshotURL) {
 
 // ── SUBMIT REVIEW ──
 function submitReview(){
+  // Validate reviewer phone first
+  var reviewerPhone = (document.getElementById("f-reviewer-phone")||{}).value||"";
+  reviewerPhone = reviewerPhone.trim().replace(/\s/g,"");
+  if(!reviewerPhone || !/^\+250[0-9]{9}$/.test(reviewerPhone)){
+    showToast("Please enter a valid Rwanda phone number (+250...)","error");
+    document.getElementById("f-reviewer-phone").focus();
+    return;
+  }
+
+  var submitBtn = document.querySelector("button[onclick='submitReview()']");
+  if(submitBtn){ submitBtn.textContent = "Submitting..."; submitBtn.disabled = true; }
+
+  // Upload screenshot first if provided
+  uploadScreenshot(window._screenshotFile || null).then(function(screenshotURL) {
+    doSubmitReview(reviewerPhone, screenshotURL, submitBtn);
+  });
+}
+
+function doSubmitReview(reviewerPhone, screenshotURL, submitBtn){
   var bizname  = document.getElementById("f-bizname").value.trim();
   var platform = document.getElementById("f-platform").value;
   var handle   = document.getElementById("f-handle").value.trim().replace(/^@/,"");
@@ -3344,51 +3439,70 @@ function submitReview(){
   var payment  = document.getElementById("f-payment").value;
   var desc     = document.getElementById("f-desc").value.trim();
 
-  // Show uploading state if screenshot attached
-  var submitBtn = document.querySelector("button[onclick='submitReview()']");
-  if(window._screenshotFile && submitBtn) {
-    submitBtn.textContent = "Uploading screenshot...";
-    submitBtn.disabled = true;
-  }
-
-  // Upload screenshot first if provided
-  uploadScreenshot(window._screenshotFile || null).then(function(screenshotURL) {
-    if(submitBtn) { submitBtn.textContent = "Submit Review ✓"; submitBtn.disabled = false; }
-    doSubmitReview(bizname, platform, handle, phone, website, date, amount, payment, desc, screenshotURL);
+  // Find matching account ID from loaded BIZ list
+  var match = BIZ.find(function(b){
+    return (b.handle && b.handle.replace(/^@/,"").toLowerCase() === handle.toLowerCase()) ||
+           b.name.toLowerCase() === bizname.toLowerCase();
   });
-}
+  var accountId = match ? match.id : null;
 
-function doSubmitReview(bizname, platform, handle, phone, website, date, amount, payment, desc, screenshotURL){
-  var targetId = window._pendingProfileId;
-  if(!targetId){
-    var match=BIZ.find(function(b){ return (b.handle&&b.handle.replace(/^@/,"").toLowerCase()===handle.toLowerCase())||b.name.toLowerCase()===bizname.toLowerCase(); });
-    if(match) targetId=match.id;
-  }
-  if(!targetId){
-    var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
-    var ci=bizname.charCodeAt(0)%cols.length;
-    var inits=bizname.split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
-    var newBiz={id:Date.now(),name:bizname,handle:"@"+handle,phone:phone,website:website,platforms:[platform||"other"],profileURL:getPlatformURL(platform,handle),location:"Rwanda",trustScore:0,verified:false,reviewCount:0,avgRating:0,color:cols[ci].color,bg:cols[ci].bg,initials:inits,desc:"Profile created from a user review.",reviews:[]};
-    BIZ.push(newBiz);
-    targetId=newBiz.id;
-  }
-  var biz=BIZ.find(function(x){return x.id===targetId;});
-  var review={id:Date.now(),bizId:targetId,bizName:biz?biz.name:bizname,platform:platform,user:"Anonymous",rating:currentRating,date:date,amount:amount?parseInt(amount):null,payment:payment,text:desc,screenshot:window._screenshotData||null,status:"pending"};
-  // Save to localStorage (immediate, works offline)
-  saveNewReview(review);
+  // POST to backend API — goes to pending moderation
+  var payload = {
+    reviewer_phone:   reviewerPhone,
+    account_id:       accountId || null,
+    handle:           handle ? "@"+handle : null,
+    platform:         platform || "other",
+    rating:           currentRating,
+    transaction_date: date || null,
+    amount_rwf:       amount ? parseInt(amount) : null,
+    payment_method:   payment || null,
+    description:      desc,
+    screenshot_url:   screenshotURL || null
+  };
 
-  // Save to Supabase database
-  saveToSupabase(bizname, "@"+handle, phone, website, platform, review, screenshotURL);
+  fetch(API_URL + "/reviews", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(submitBtn){ submitBtn.textContent = "Submit Review ✓"; submitBtn.disabled = false; }
 
-  window._pendingProfileId=null; window._screenshotData=null; currentRating=0; renderStarRating(0);
-  ["f-bizname","f-handle","f-phone-biz","f-website","f-desc","f-amount","f-date"].forEach(function(fid){var el=document.getElementById(fid);if(el)el.value="";});
-  document.getElementById("f-platform").value="";
-  document.querySelectorAll(".plat-btn").forEach(function(b){b.classList.remove("active");});
-  var prev=document.getElementById("profile-url-preview"); if(prev) prev.style.display="none";
-  toStep(1);
-  renderAdminPending();
-  showToast("Review submitted! Waiting for admin approval.","success");
-  setTimeout(function(){renderBizList(BIZ);renderRecent();showDetail(targetId);},1500);
+    if(data.success){
+      // Reset form
+      window._pendingProfileId = null;
+      window._screenshotData = null;
+      window._screenshotFile = null;
+      currentRating = 0;
+      renderStarRating(0);
+      ["f-bizname","f-handle","f-phone-biz","f-website","f-desc","f-amount","f-date","f-reviewer-phone"].forEach(function(fid){
+        var el=document.getElementById(fid); if(el) el.value="";
+      });
+      document.getElementById("f-platform").value="";
+      document.querySelectorAll(".plat-btn").forEach(function(b){b.classList.remove("active");});
+      var prev=document.getElementById("profile-url-preview"); if(prev) prev.style.display="none";
+      var upPrev=document.getElementById("upload-preview"); if(upPrev) upPrev.style.display="none";
+      var upZone=document.getElementById("upload-zone"); if(upZone) upZone.classList.remove("has-file");
+      toStep(1);
+
+      showToast("✅ Review submitted! It will go live after admin approval (within 24h).","success");
+
+      // If we know which business, go back to its profile
+      if(accountId){
+        setTimeout(function(){ showDetail(accountId); }, 1800);
+      } else {
+        setTimeout(function(){ go("home"); }, 1800);
+      }
+    } else {
+      showToast(data.error || "Submission failed. Please try again.","error");
+    }
+  })
+  .catch(function(err){
+    if(submitBtn){ submitBtn.textContent = "Submit Review ✓"; submitBtn.disabled = false; }
+    showToast("Network error. Please check your connection and try again.","error");
+    console.error("Submit error:", err);
+  });
 }
 
 // ── MODERATE REVIEW ──
@@ -3547,6 +3661,11 @@ function toStep(n){
     if(currentRating===0){showToast("Please give a rating","error");return;}
     if(document.getElementById("f-desc").value.trim().length<50){showToast("Description too short (min 50 characters)","error");return;}
     buildSummary();
+  }
+  if(n==="submit"){
+    var rp = (document.getElementById("f-reviewer-phone")||{}).value||"";
+    rp = rp.trim().replace(/\s/g,"");
+    if(!rp || !/^\+250[0-9]{9}$/.test(rp)){showToast("Please enter a valid Rwanda phone number (+250...)","error");return false;}
   }
   for(var i=1;i<=3;i++){
     var fs=document.getElementById("fs"+i); if(fs) fs.style.display=i===n?"block":"none";
@@ -3730,72 +3849,65 @@ renderAdminAccounts();
 renderPlatformBars();
 renderModLog();
 
-// Load everything from Supabase on startup
-loadFromSupabase();
+// ── LOAD BUSINESSES FROM LIVE API ON STARTUP ──
+function mapAccount(r){
+  var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
+  var ci=(r.business_name||"A").charCodeAt(0)%cols.length;
+  var inits=(r.business_name||"").replace(/[^a-zA-Z\s]/g,"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
+  var platforms=Array.isArray(r.platform)?r.platform:(r.platform?[r.platform]:[]);
+  return {
+    id: r.id,
+    name: r.business_name,
+    handle: r.handle||"",
+    platforms: platforms,
+    phone: r.phone_number||"",
+    website: r.website||"",
+    location: r.location||"Rwanda",
+    trustScore: parseFloat(r.trust_score)||0,
+    verified: r.verification_status==="verified",
+    reviewCount: parseInt(r.review_count)||0,
+    avgRating: parseFloat(r.avg_rating)||0,
+    color: cols[ci].color, bg: cols[ci].bg, initials: inits,
+    desc: r.description||"",
+    profileURL: r.handle?getPlatformURL(platforms[0]||"","@"+(r.handle||"").replace(/^@/,"")):"",
+    reviews: []
+  };
+}
 
-function loadFromSupabase() {
-  // Load accounts
-  sbFetch("accounts", "select=*&order=review_count.desc&limit=100").then(function(rows){
-    console.log("Loaded accounts from Supabase:", rows ? rows.length : 0);
-    if(!rows || !Array.isArray(rows)) return;
-    rows.forEach(function(r){
-      var exists = BIZ.find(function(b){ return b.handle===r.handle||b.name===r.business_name||String(b.id)===String(r.id); });
-      if(!exists){
-        var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
-        var ci=(r.business_name||"A").charCodeAt(0)%cols.length;
-        var inits=(r.business_name||"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
-        var platforms = Array.isArray(r.platform)?r.platform:(r.platform?[r.platform]:[]);
-        BIZ.push({
-          id: r.id, name: r.business_name, handle: r.handle||"",
-          platforms: platforms, phone: r.phone_number||"",
-          website: r.website||"", location: r.location||"Rwanda",
-          trustScore: parseFloat(r.trust_score)||0,
-          verified: r.verification_status==="verified",
-          reviewCount: parseInt(r.review_count)||0,
-          avgRating: parseFloat(r.avg_rating)||0,
-          color: cols[ci].color, bg: cols[ci].bg, initials: inits,
-          desc: r.description||"No description yet.",
-          profileURL: r.handle ? getPlatformURL(platforms[0]||"tiktok", r.handle) : "",
-          reviews: [], _dbId: r.id
+function loadBusinesses(){
+  // Show loading state
+  var listEl = document.getElementById("biz-list");
+  if(listEl) listEl.innerHTML = "<div style='text-align:center;padding:3rem;color:var(--ink3)'><div style='font-size:1.5rem;margin-bottom:0.5rem'>⏳</div>Loading businesses...</div>";
+
+  api("/search?q=a&type=name&sort=reviews").then(function(data){
+    if(data && data.results && data.results.length){
+      // Replace the hardcoded BIZ array with live data
+      BIZ.length = 0;
+      data.results.forEach(function(r){ BIZ.push(mapAccount(r)); });
+    }
+    // Also try a broader fetch via supabase direct for all businesses
+    sbFetch("accounts","select=*&order=review_count.desc&limit=200").then(function(rows){
+      if(rows && Array.isArray(rows) && rows.length){
+        // Merge: add any not already in BIZ
+        rows.forEach(function(r){
+          var exists = BIZ.find(function(b){ return String(b.id)===String(r.id); });
+          if(!exists) BIZ.push(mapAccount(r));
         });
       }
+      renderBizList(BIZ);
+      renderRecent();
+    }).catch(function(){
+      renderBizList(BIZ);
+      renderRecent();
     });
+  }).catch(function(){
+    // If API is down, keep hardcoded BIZ and show it
     renderBizList(BIZ);
     renderRecent();
-    renderAdminAccounts();
-
-    // Then load approved reviews
-    sbFetch("reviews", "review_status=eq.approved&select=*&order=created_at.desc&limit=500").then(function(reviews){
-      console.log("Loaded reviews from Supabase:", reviews ? reviews.length : 0);
-      if(!reviews || !Array.isArray(reviews)) return;
-      reviews.forEach(function(r){
-        var biz = BIZ.find(function(b){ return String(b.id)===String(r.account_id)||String(b._dbId)===String(r.account_id); });
-        if(biz){
-          var exists = biz.reviews.find(function(rv){ return String(rv.id)===String(r.id); });
-          if(!exists){
-            biz.reviews.push({
-              id: r.id, user: "Verified buyer",
-              rating: r.rating,
-              date: r.transaction_date||r.created_at.split("T")[0],
-              amount: r.amount_rwf, payment: r.payment_method,
-              text: r.description, screenshot: r.screenshot_url||null,
-              resp: null, status: "approved"
-            });
-          }
-        }
-      });
-      BIZ.forEach(function(b){
-        if(b.reviews.length>0){
-          b.reviews.sort(function(a,c){ return new Date(c.date||0)-new Date(a.date||0); });
-          b.reviewCount = b.reviews.length;
-          b.avgRating = calcAvgRating(b.reviews);
-          b.trustScore = calcTrustScore(b.reviews);
-        }
-      });
-      renderBizList(BIZ);
-    });
   });
 }
+
+loadBusinesses();
 
 // Animated number counter
 function animateCounter(el,target,duration){
