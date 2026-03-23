@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trustly Rwanda — Review and Find Trusted Businesses</title>
+<title>Trustly Rwanda — Shaka Ibyifuzo / Find Trusted Businesses</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,300;1,400&family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,600;0,9..144,700;1,9..144,300;1,9..144,600&display=swap" rel="stylesheet">
 <style>
@@ -2730,7 +2730,7 @@ var skipTimer = null;
 var lockoutTimer = null;
 var loginAttempts = 0;
 var ADMIN_CREDS = {username:"admin", password:"DaVy@S24"};
-var API_URL = "https://trustly-today24747447.vercel.app/api";
+var API_URL = "https://trustly-backend.vercel.app/api";
 var SUPABASE_URL = "https://wvgbupmhtpxixootixsm.supabase.co";
 var SUPABASE_KEY = "sb_publishable_UrqILEwUMFIBmuLvRR3-nA_Xu5eL-X6";
 
@@ -2947,23 +2947,77 @@ function liveSearch(val){
   runSearch(raw, false);
 }
 function runSearch(raw, scroll){
-  var q = raw.toLowerCase();
   var lbl = document.getElementById("results-label");
-  var res = BIZ.filter(function(b){
-    return b.name.toLowerCase().includes(q)||
-      b.handle.toLowerCase().includes(q)||
-      b.phone.replace(/\s/g,"").includes(q.replace(/\s/g,""))||
-      (b.website&&b.website.toLowerCase().includes(q));
+  var listEl = document.getElementById("biz-list");
+
+  // Detect search type
+  var type = "name";
+  if(raw.startsWith("@")) type = "handle";
+  else if(/^\+?250|^07/.test(raw.replace(/\s/g,""))) type = "phone";
+  else if(/\.(rw|com|net)/.test(raw)) type = "website";
+
+  // Show loading state
+  if(lbl) lbl.innerHTML = "Searching <strong>\""+raw+"\"</strong>...";
+  if(listEl) listEl.innerHTML = "<div style='text-align:center;padding:3rem;color:var(--ink3)'><div style='font-size:1.5rem;margin-bottom:0.5rem'>🔍</div>Loading...</div>";
+
+  var params = "?q="+encodeURIComponent(raw)+"&type="+type+(activeFilter&&activeFilter!=="all"?"&platform="+activeFilter:"");
+
+  api("/search"+params).then(function(data){
+    if(data.error || !data.results){
+      // Fallback to local BIZ data if backend fails
+      var q = raw.toLowerCase();
+      var res = BIZ.filter(function(b){
+        return b.name.toLowerCase().includes(q)||
+          b.handle.toLowerCase().includes(q)||
+          (b.phone&&b.phone.replace(/\s/g,"").includes(q.replace(/\s/g,"")))||
+          (b.website&&b.website.toLowerCase().includes(q));
+      });
+      if(activeFilter!=="all") res=res.filter(function(b){return b.platforms.includes(activeFilter);});
+      if(res.length>0){
+        if(lbl) lbl.innerHTML = "Found <strong>"+res.length+" result"+(res.length!==1?"s":"")+"</strong> for \"<strong>"+raw+"</strong>\"";
+        renderBizList(res);
+      } else {
+        if(lbl) lbl.innerHTML = "No results for \"<strong>"+raw+"</strong>\"";
+        showNotFound(raw);
+      }
+      return;
+    }
+
+    var results = data.results;
+    // Map API results to BIZ format for rendering
+    var mapped = results.map(function(a){
+      var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
+      var ci=(a.business_name||"").charCodeAt(0)%cols.length;
+      var inits=(a.business_name||"??").replace(/[^a-zA-Z\s]/g,"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
+      return {
+        id: a.id,
+        name: a.business_name,
+        handle: a.handle||"",
+        phone: a.phone_number||"",
+        website: a.website||"",
+        platforms: a.platform||[],
+        location: a.location||"Rwanda",
+        trustScore: a.trust_score||0,
+        verified: a.verification_status==="verified",
+        reviewCount: a.review_count||0,
+        avgRating: a.avg_rating||0,
+        color: cols[ci].color,
+        bg: cols[ci].bg,
+        initials: inits,
+        desc: a.description||"",
+        reviews: []
+      };
+    });
+
+    if(mapped.length>0){
+      if(lbl) lbl.innerHTML = "Found <strong>"+mapped.length+" result"+(mapped.length!==1?"s":"")+"</strong> for \"<strong>"+raw+"</strong>\"";
+      renderBizList(mapped);
+    } else {
+      if(lbl) lbl.innerHTML = "No results for \"<strong>"+raw+"</strong>\"";
+      showNotFound(raw);
+    }
+    if(scroll){var el=document.getElementById("biz-list");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
   });
-  if(activeFilter!=="all") res=res.filter(function(b){return b.platforms.includes(activeFilter);});
-  if(res.length>0){
-    if(lbl) lbl.innerHTML = "Found <strong>"+res.length+" result"+(res.length!==1?"s":"")+"</strong> for \"<strong>"+raw+"</strong>\"";
-    renderBizList(res);
-  } else {
-    if(lbl) lbl.innerHTML = "No results for \"<strong>"+raw+"</strong>\"";
-    showNotFound(raw);
-  }
-  if(scroll){var el=document.getElementById("biz-list");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
 }
 function showNotFound(query){
   window._lastQuery = query;
@@ -3055,25 +3109,66 @@ function renderRecent(){
 
 // ── BUSINESS DETAIL ──
 function showDetail(id){
-  var b=BIZ.find(function(x){return x.id===id;});
-  if(!b) return;
-  var stored = getBusinessReviews(id);
-  if(stored.length>0){
-    b.reviews = stored.map(function(r){
-      return {id:r.id,user:r.user||"Anonymous",rating:r.rating,date:r.date,amount:r.amount,payment:r.payment,text:r.text,screenshot:r.screenshot,resp:null,status:"approved"};
-    });
-    // Sort newest first
-    b.reviews.sort(function(a,b){
-      return new Date(b.date||b.id||0) - new Date(a.date||a.id||0);
-    });
-    b.reviewCount = b.reviews.length;
-    b.avgRating   = calcAvgRating(b.reviews);
-    b.trustScore  = calcTrustScore(b.reviews);
-  }
-  renderDetailPage(id);
+  // Show detail page with loading state first
+  go("detail");
+  document.getElementById("detail-content").innerHTML =
+    "<div style='text-align:center;padding:4rem;color:var(--ink3)'><div style='font-size:2rem;margin-bottom:1rem'>⏳</div><div style='font-weight:600'>Loading business profile...</div></div>";
+
+  // Try fetching from live backend first
+  api("/accounts/"+id).then(function(data){
+    if(data && data.account){
+      var a = data.account;
+      var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
+      var ci=(a.business_name||"").charCodeAt(0)%cols.length;
+      var inits=(a.business_name||"??").replace(/[^a-zA-Z\s]/g,"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
+      var b = {
+        id: a.id,
+        name: a.business_name,
+        handle: a.handle||"",
+        phone: a.phone_number||"",
+        website: a.website||"",
+        platforms: a.platform||[],
+        location: a.location||"Rwanda",
+        trustScore: a.trust_score||0,
+        verified: a.verification_status==="verified",
+        reviewCount: a.review_count||0,
+        avgRating: a.avg_rating||0,
+        color: cols[ci].color,
+        bg: cols[ci].bg,
+        initials: inits,
+        desc: a.description||"",
+        reviews: (data.reviews||[]).map(function(r){
+          return {
+            id: r.id,
+            user: r.reviewer_phone ? r.reviewer_phone.slice(0,7)+"****" : "Anonymous",
+            rating: r.rating,
+            date: r.created_at ? r.created_at.slice(0,10) : "",
+            amount: r.amount_rwf,
+            payment: r.payment_method,
+            text: r.description,
+            screenshot: r.screenshot_url,
+            resp: r.business_responses && r.business_responses[0] ? r.business_responses[0].response_text : null
+          };
+        })
+      };
+      renderDetailPage(b);
+    } else {
+      // Fallback to local BIZ data
+      var b = BIZ.find(function(x){return x.id===id;});
+      if(!b){ document.getElementById("detail-content").innerHTML="<div style='padding:2rem;text-align:center'>Business not found.</div>"; return; }
+      var stored = getBusinessReviews(id);
+      if(stored.length>0){
+        b.reviews = stored.map(function(r){
+          return {id:r.id,user:r.user||"Anonymous",rating:r.rating,date:r.date,amount:r.amount,payment:r.payment,text:r.text,screenshot:r.screenshot,resp:null};
+        });
+        b.reviews.sort(function(a,c){return new Date(c.date||0)-new Date(a.date||0);});
+        b.reviewCount=b.reviews.length; b.avgRating=calcAvgRating(b.reviews); b.trustScore=calcTrustScore(b.reviews);
+      }
+      renderDetailPage(b);
+    }
+  });
 }
-function renderDetailPage(id){
-  var b=BIZ.find(function(x){return x.id===id;});
+function renderDetailPage(b){
   if(!b) return;
   var pos=b.reviews.filter(function(r){return r.rating>=4;}).length;
   var neg=b.reviews.filter(function(r){return r.rating<=2;}).length;
@@ -3299,63 +3394,21 @@ function doSubmitReview(bizname, platform, handle, phone, website, date, amount,
 // ── MODERATE REVIEW ──
 function moderateRv(reviewId, action){
   reviewId = String(reviewId);
+  var token = localStorage.getItem("tr_admin_token");
+  if(!token){ showToast("Admin session expired. Please log in again.","error"); return; }
 
-  if(action === "approve"){
-    // Update in Supabase directly by ID
-    sbUpdate("reviews", reviewId, {
-      review_status: "approved"
-    }).then(function(result){
-      console.log("Supabase approve result:", result);
-    });
-
-    // Also remove from localStorage pending if it's there
-    approveReview(reviewId);
-
-    // Find the review details to show on site immediately
-    sbFetch("reviews", "id=eq."+reviewId+"&select=*,accounts(business_name,handle,id,platform)").then(function(rows){
-      if(rows && rows.length > 0){
-        var r = rows[0];
-        var acct = r.accounts || {};
-        var biz = BIZ.find(function(b){
-          return String(b.id)===String(acct.id) ||
-                 String(b._dbId)===String(acct.id) ||
-                 b.handle===acct.handle;
-        });
-        if(biz){
-          if(!biz.reviews) biz.reviews=[];
-          biz.reviews.unshift({
-            id: r.id,
-            user: "Verified buyer",
-            rating: r.rating,
-            date: r.transaction_date||r.created_at.split("T")[0],
-            amount: r.amount_rwf,
-            payment: r.payment_method,
-            text: r.description,
-            screenshot: r.screenshot_url||null,
-            resp: null,
-            status: "approved"
-          });
-          biz.reviews.sort(function(a,b){ return new Date(b.date||0)-new Date(a.date||0); });
-          biz.reviewCount = biz.reviews.length;
-          biz.avgRating   = calcAvgRating(biz.reviews);
-          biz.trustScore  = calcTrustScore(biz.reviews);
-          renderBizList(BIZ);
-          renderRecent();
-        }
-      }
-    });
-
-    showToast("Approved — review is now live! ✓","success");
-
-  } else if(action === "reject"){
-    // Update in Supabase
-    sbUpdate("reviews", reviewId, { review_status: "rejected" });
-    // Also remove from localStorage
-    rejectReview(reviewId);
-    showToast("Review rejected","info");
-  }
-
-  renderAdminPending();
+  fetch(API_URL+"/admin/reviews/"+reviewId, {
+    method: "PATCH",
+    headers: {"Authorization":"Bearer "+token, "Content-Type":"application/json"},
+    body: JSON.stringify({action: action})
+  }).then(function(r){ return r.json(); }).then(function(data){
+    if(data.success){
+      showToast(action==="approved"?"Review approved — now live! ✓":"Review "+action,"success");
+      renderAdminPending();
+    } else {
+      showToast(data.error||"Action failed","error");
+    }
+  }).catch(function(){ showToast("Network error","error"); });
 }
 
 // ── ADMIN PENDING TABLE ──
@@ -3411,20 +3464,47 @@ function openRvDetail(reviewId){
 function renderAdminAccounts(){
   var el=document.getElementById("admin-accounts-tbody");
   if(!el) return;
-  el.innerHTML=BIZ.map(function(b){
-    var rc=getBusinessReviews(b.id).length||b.reviewCount;
-    return "<tr>" +
-      "<td><div style='display:flex;align-items:center;gap:8px'>" +
-      "<div style='width:30px;height:30px;border-radius:8px;background:"+b.bg+";color:"+b.color+";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800'>"+b.initials+"</div>" +
-      "<div><div style='font-weight:500;color:var(--ink)'>"+b.name+"</div><div style='font-size:0.75rem;color:var(--ink3)'>"+b.handle+"</div></div></div></td>" +
-      "<td>"+b.platforms.map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join(" ")+"</td>" +
-      "<td style='font-size:0.8rem;color:var(--ink3)'>"+(b.phone||"—")+"</td>" +
-      "<td><strong style='color:"+tcol(b.trustScore)+"'>"+(b.trustScore||"—")+"</strong></td>" +
-      "<td>"+rc+"</td>" +
-      "<td><span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Verified":"Unverified")+"</span></td>" +
-      "<td><div class='action-cell'><button class='abtn abtn-edit' onclick='openModal(\"add-acct-modal\")'>Edit</button></div></td>" +
-      "</tr>";
-  }).join("");
+  var token = localStorage.getItem("tr_admin_token");
+  if(!token) return;
+  fetch(API_URL+"/admin/accounts",{headers:{"Authorization":"Bearer "+token}})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var accounts = data.accounts||[];
+      if(!accounts.length){
+        el.innerHTML="<tr><td colspan='7' style='text-align:center;padding:2rem;color:var(--ink3)'>No accounts yet</td></tr>";
+        return;
+      }
+      var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
+      el.innerHTML=accounts.map(function(a){
+        var ci=(a.business_name||"").charCodeAt(0)%cols.length;
+        var inits=(a.business_name||"??").replace(/[^a-zA-Z\s]/g,"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
+        var verified=a.verification_status==="verified";
+        return "<tr>" +
+          "<td><div style='display:flex;align-items:center;gap:8px'>" +
+          "<div style='width:30px;height:30px;border-radius:8px;background:"+cols[ci].bg+";color:"+cols[ci].color+";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800'>"+inits+"</div>" +
+          "<div><div style='font-weight:500;color:var(--ink)'>"+a.business_name+"</div><div style='font-size:0.75rem;color:var(--ink3)'>"+(a.handle||"")+"</div></div></div></td>" +
+          "<td>"+(a.platform||[]).map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join(" ")+"</td>" +
+          "<td style='font-size:0.8rem;color:var(--ink3)'>"+(a.phone_number||"—")+"</td>" +
+          "<td><strong style='color:"+tcol(a.trust_score||0)+"'>"+(a.trust_score||"—")+"</strong></td>" +
+          "<td>"+(a.review_count||0)+"</td>" +
+          "<td><span class='badge "+(verified?"verified":"unverified")+"'>"+(verified?"✓ Verified":"Unverified")+"</span></td>" +
+          "<td><div class='action-cell'>" +
+          (!verified?"<button class='abtn abtn-approve' onclick='verifyAccount(\""+a.id+"\")'>Verify</button>":"") +
+          "</div></td></tr>";
+      }).join("");
+    }).catch(function(){});
+}
+
+function verifyAccount(accountId){
+  var token = localStorage.getItem("tr_admin_token");
+  if(!token) return;
+  fetch(API_URL+"/admin/accounts/"+accountId+"/verify",{
+    method:"PATCH",
+    headers:{"Authorization":"Bearer "+token,"Content-Type":"application/json"}
+  }).then(function(r){return r.json();}).then(function(data){
+    if(data.success){ showToast("Account verified ✓","success"); renderAdminAccounts(); }
+    else showToast(data.error||"Failed","error");
+  });
 }
 
 // ── REVIEW FORM ──
@@ -3532,29 +3612,49 @@ function showAdminLogin(){
 function cancelLogin(){var el=document.getElementById("admin-login");if(el)el.style.display="none";}
 function tryLogin(){
   if(lockoutTimer) return;
-  var username=document.getElementById("admin-username").value.trim();
+  var email=document.getElementById("admin-username").value.trim();
   var password=document.getElementById("admin-password").value;
   var errorEl=document.getElementById("login-error");
   var attEl=document.getElementById("login-attempts");
   var btn=document.getElementById("login-submit-btn");
   var card=document.querySelector(".login-card");
-  if(username===ADMIN_CREDS.username&&password===ADMIN_CREDS.password){
-    loginAttempts=0; btn.textContent="✓ Signing in..."; btn.style.background="#0A7EC2";
-    setTimeout(function(){document.getElementById("admin-login").style.display="none";go("admin");btn.textContent="Sign in to Dashboard";btn.style.background="";},700);
-  } else {
-    loginAttempts++;
-    if(errorEl) errorEl.classList.add("show");
-    document.getElementById("admin-password").value="";
-    var remaining=5-loginAttempts;
-    if(attEl&&remaining>0) attEl.textContent=remaining+" attempt"+(remaining!==1?"s":"")+" remaining";
-    if(card){card.style.transform="translateX(-8px)";setTimeout(function(){card.style.transform="translateX(8px)";},80);setTimeout(function(){card.style.transform="translateX(-5px)";},160);setTimeout(function(){card.style.transform="translateX(5px)";},240);setTimeout(function(){card.style.transform="translateX(0)";},320);}
-    if(loginAttempts>=5){
-      var secs=30; btn.disabled=true; btn.style.background="#888";
-      if(errorEl) errorEl.textContent="Too many attempts. Locked for 30 seconds.";
-      lockoutTimer=setInterval(function(){secs--;btn.textContent="Locked — wait "+secs+"s";if(secs<=0){clearInterval(lockoutTimer);lockoutTimer=null;loginAttempts=0;btn.disabled=false;btn.textContent="Sign in to Dashboard";btn.style.background="";if(errorEl){errorEl.textContent="Incorrect username or password.";errorEl.classList.remove("show");}}},1000);
+
+  btn.textContent="Signing in..."; btn.disabled=true;
+
+  fetch(API_URL+"/admin/login",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({email:email, password:password})
+  }).then(function(r){return r.json();}).then(function(data){
+    btn.disabled=false;
+    if(data.token){
+      localStorage.setItem("tr_admin_token", data.token);
+      loginAttempts=0;
+      btn.textContent="✓ Signing in..."; btn.style.background="#0A7EC2";
+      setTimeout(function(){
+        document.getElementById("admin-login").style.display="none";
+        go("admin");
+        btn.textContent="Sign in to Dashboard"; btn.style.background="";
+        renderAdminPending(); renderAdminAccounts();
+      },700);
+    } else {
+      loginAttempts++;
+      if(errorEl){errorEl.textContent=data.error||"Invalid credentials";errorEl.classList.add("show");}
+      document.getElementById("admin-password").value="";
+      var remaining=5-loginAttempts;
+      if(attEl&&remaining>0) attEl.textContent=remaining+" attempt"+(remaining!==1?"s":"")+" remaining";
+      if(card){card.style.transform="translateX(-8px)";setTimeout(function(){card.style.transform="translateX(8px)";},80);setTimeout(function(){card.style.transform="translateX(-5px)";},160);setTimeout(function(){card.style.transform="translateX(5px)";},240);setTimeout(function(){card.style.transform="translateX(0)";},320);}
+      if(loginAttempts>=5){
+        var secs=30; btn.disabled=true; btn.style.background="#888";
+        if(errorEl) errorEl.textContent="Too many attempts. Locked for 30 seconds.";
+        lockoutTimer=setInterval(function(){secs--;btn.textContent="Locked — wait "+secs+"s";if(secs<=0){clearInterval(lockoutTimer);lockoutTimer=null;loginAttempts=0;btn.disabled=false;btn.textContent="Sign in to Dashboard";btn.style.background="";if(errorEl){errorEl.textContent="Invalid credentials";errorEl.classList.remove("show");}}},1000);
+      }
+      var pw=document.getElementById("admin-password"); if(pw) pw.focus();
     }
-    var pw=document.getElementById("admin-password"); if(pw) pw.focus();
-  }
+  }).catch(function(){
+    btn.disabled=false; btn.textContent="Sign in to Dashboard";
+    if(errorEl){errorEl.textContent="Network error. Check your connection.";errorEl.classList.add("show");}
+  });
 }
 
 // ── ANALYTICS ──
@@ -3780,7 +3880,7 @@ setTimeout(function(){
         <li><a href="#">Cookie Policy</a></li>
       </ul>
       <div class="footer-contact">
-        <div class="footer-contact-item">✉ hello@trustly.rw</div>
+        <div class="footer-contact-item">✉ <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="8be3eee7e7e4cbfff9fef8ffe7f2a5f9fc">[email&#160;protected]</a></div>
         <div class="footer-contact-item">📍 Kigali, Rwanda</div>
       </div>
     </div>
@@ -3817,10 +3917,4 @@ setTimeout(function(){
     </div>
     <div class="popup-ad-skip">
       <div class="popup-skip-timer" id="popup-skip-timer">Wait <span id="skip-countdown">5</span>s to skip</div>
-      <button class="popup-skip-btn" id="popup-skip-btn" onclick="closePopupAd()">Skip Ad ›</button>
-    </div>
-  </div>
-</div>
-
-</body>
-</html>
+      <button class="popup-
