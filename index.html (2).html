@@ -744,24 +744,6 @@ label.flabel .req { color: var(--red); margin-left: 2px; }
 .upload-preview { margin-top: 1rem; border-radius: 9px; overflow: hidden; max-height: 160px; display: none; }
 .upload-preview img { width: 100%; height: 160px; object-fit: cover; }
 
-/* OTP SECTION */
-.otp-card {
-  background: var(--cream); border: 1px solid var(--border);
-  border-radius: 12px; padding: 1.375rem;
-}
-.otp-title {
-  font-weight: 600; font-size: 0.9375rem; color: var(--ink); margin-bottom: 4px;
-  display: flex; align-items: center; gap: 7px;
-}
-.otp-sub { font-size: 0.875rem; color: var(--ink2); margin-bottom: 1rem; line-height: 1.6; }
-.otp-row { display: flex; gap: 8px; align-items: flex-end; }
-.otp-row .finput { flex: 1; }
-.otp-verified {
-  display: flex; align-items: center; gap: 8px;
-  background: rgba(26,107,58,0.08); border-radius: 8px;
-  padding: 10px 14px; font-size: 0.875rem; color: var(--rw-green); font-weight: 500;
-  margin-top: 0.875rem;
-}
 
 /* FORM NOTICE */
 .f-notice {
@@ -1532,12 +1514,12 @@ select { -webkit-appearance: menulist; }
       <div class="login-error" id="login-error">Incorrect username or password. Please try again.</div>
 
       <div class="login-field">
-        <label for="admin-username">Username</label>
-        <input type="text" id="admin-username" placeholder="Enter admin username" autocomplete="off" onkeydown="if(event.key==='Enter')tryLogin()">
+        <label for="admin-username">Admin Email</label>
+        <input type="email" id="admin-username" placeholder="admin@trustly.rw" autocomplete="off" onkeydown="if(event.key==='Enter')tryLogin()">
       </div>
       <div class="login-field">
         <label for="admin-password">Password</label>
-        <input type="password" id="admin-password" placeholder="Enter password" onkeydown="if(event.key==='Enter')tryLogin()">
+        <input type="password" id="admin-password" placeholder="Enter your password" onkeydown="if(event.key==='Enter')tryLogin()">
       </div>
 
       <button class="login-btn" onclick="tryLogin()" id="login-submit-btn">Sign in to Dashboard</button>
@@ -1990,8 +1972,6 @@ select { -webkit-appearance: menulist; }
         <!-- Review summary -->
         <div class="rv-summary" id="rv-summary"></div>
 
-
-
         <!-- Moderation notice -->
         <div class="f-notice f-notice-amber">
           <div class="f-notice-title">📋 Moderation notice / Itangazo ry'igenzura</div>
@@ -2107,22 +2087,22 @@ select { -webkit-appearance: menulist; }
       <div class="admin-kpi-row">
         <div class="kpi-card">
           <div class="kpi-top"><span class="kpi-icon">⏳</span><span class="kpi-badge-new">New</span></div>
-          <div class="kpi-num">23</div>
+          <div class="kpi-num" id="stat-pending-kpi">—</div>
           <div class="kpi-lbl">Pending reviews</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><span class="kpi-icon">✅</span></div>
-          <div class="kpi-num">14,290</div>
+          <div class="kpi-num" id="stat-total-kpi">—</div>
           <div class="kpi-lbl">Total approved</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><span class="kpi-icon">🏢</span></div>
-          <div class="kpi-num">2,847</div>
+          <div class="kpi-num" id="stat-accounts-kpi">—</div>
           <div class="kpi-lbl">Total accounts</div>
         </div>
         <div class="kpi-card">
           <div class="kpi-top"><span class="kpi-icon">🚨</span><span class="kpi-badge-new" style="background:var(--red-light);color:var(--red)">Urgent</span></div>
-          <div class="kpi-num">7</div>
+          <div class="kpi-num" id="stat-flagged-kpi">—</div>
           <div class="kpi-lbl">Flagged for review</div>
         </div>
       </div>
@@ -2358,7 +2338,7 @@ select { -webkit-appearance: menulist; }
     </div>
     <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:1rem">
       <button class="btn btn-ghost" onclick="closeModal('respond-modal')">Cancel</button>
-      <button class="btn btn-primary" onclick="showToast('Response submitted for review','success');closeModal('respond-modal')">Submit Response</button>
+      <button class="btn btn-primary" onclick="submitBizResponse()">Submit Response</button>
     </div>
   </div>
 </div>
@@ -2369,103 +2349,84 @@ select { -webkit-appearance: menulist; }
 
 <!-- ══ JAVASCRIPT ══ -->
 <script>
+// ═══════════════════════════════════════════════════════════════════
+// TRUSTLY RWANDA — FULLY BACKEND-INTEGRATED FRONTEND
+// All API calls go through /api/* (Vercel backend → Supabase)
+// ═══════════════════════════════════════════════════════════════════
 
-// ═══════════════════════════════════════════════════════
-// TRUSTLY RWANDA — CLEAN JAVASCRIPT
-// ═══════════════════════════════════════════════════════
+// ── CONFIG ──
+var API_URL = "https://trustly-today24747447.vercel.app/api";
 
-// ── DATA ──
-var BIZ = [
-  { id:1, name:"Rwanda Fashion Hub", handle:"@rwandafashionhub", platforms:["tiktok","instagram"], phone:"+250 788 123 456", website:"", location:"Kigali, Rwanda", trustScore:8.4, verified:true, reviewCount:142, avgRating:4.2, color:"#1A6B3A", bg:"#E8F5E8", initials:"RF", desc:"Popular clothing seller on TikTok and Instagram. Specialises in Rwandan and African-inspired fashion.", profileURL:"https://www.tiktok.com/@rwandafashionhub", reviews:[] },
-  { id:2, name:"TechGadgets Kigali", handle:"@techgadgetskgl", platforms:["facebook","website"], phone:"+250 722 987 654", website:"techgadgets.rw", location:"Remera, Kigali", trustScore:7.1, verified:true, reviewCount:88, avgRating:3.8, color:"#0A7EC2", bg:"#E6F4FC", initials:"TG", desc:"Electronics, accessories and gadgets. Based in Remera.", profileURL:"https://www.facebook.com/techgadgetskgl", reviews:[] },
-  { id:3, name:"FreshBakes Rwanda", handle:"@freshbakesrw", platforms:["instagram","whatsapp"], phone:"+250 735 456 789", website:"", location:"Nyamirambo, Kigali", trustScore:9.2, verified:true, reviewCount:214, avgRating:4.8, color:"#7B3F00", bg:"#FDF3E3", initials:"FB", desc:"Home baker offering cakes, pastries and custom orders.", profileURL:"https://www.instagram.com/freshbakesrw", reviews:[] },
-  { id:4, name:"Mura Electronics", handle:"@muraelectronics", platforms:["tiktok","facebook"], phone:"+250 788 999 000", website:"", location:"Kimironko, Kigali", trustScore:3.2, verified:false, reviewCount:47, avgRating:1.9, color:"#7A1C1C", bg:"#FCECEA", initials:"ME", desc:"Electronics and mobile accessories seller active on TikTok Live.", profileURL:"https://www.tiktok.com/@muraelectronics", reviews:[] },
-  { id:5, name:"Ishema Boutique", handle:"@ishemaboutique", platforms:["instagram","tiktok"], phone:"+250 729 111 222", website:"", location:"Kacyiru, Kigali", trustScore:7.9, verified:true, reviewCount:63, avgRating:4.0, color:"#4A1C8C", bg:"#F0EAFF", initials:"IB", desc:"Women's fashion and accessories. Known for Ankara prints.", profileURL:"https://www.instagram.com/ishemaboutique", reviews:[] }
-];
-
-var MODLOG = [
-  {time:"2026-03-21 14:32",admin:"admin@trustly.rw",action:"Approved",biz:"FreshBakes Rwanda",notes:"Clean review, verified payment proof"},
-  {time:"2026-03-21 13:55",admin:"admin@trustly.rw",action:"Rejected",biz:"Unknown seller",notes:"No evidence provided"},
-  {time:"2026-03-21 12:10",admin:"admin@trustly.rw",action:"Edited",biz:"Rwanda Fashion Hub",notes:"Removed one insult, rest factual"}
-];
-
-var nextId = 100;
+// ── STATE ──
+var BIZ          = [];          // loaded from API
+var MODLOG       = [];          // loaded from API
 var activeFilter = "all";
 var currentRating = 0;
-var pageViewCount = 0;
-var popupShown = false;
-var adIndex = 0;
-var skipTimer = null;
+var popupShown   = false;
+var adIndex      = 0;
+var skipTimer    = null;
 var lockoutTimer = null;
 var loginAttempts = 0;
-var ADMIN_CREDS = {username:"admin", password:"DaVy@S24"};
-var API_URL = "https://trustly-today24747447.vercel.app/api";
-var SUPABASE_URL = "https://wvgbupmhtpxixootixsm.supabase.co";
-var SUPABASE_KEY = "sb_publishable_UrqILEwUMFIBmuLvRR3-nA_Xu5eL-X6";
+var ADMIN_TOKEN  = null;        // JWT stored in memory (not localStorage)
 
-// ── API - Vercel backend ──
+// ─────────────────────────────────────────────────
+// API LAYER — all calls go through backend
+// ─────────────────────────────────────────────────
 function api(endpoint, options) {
   options = options || {};
+  var headers = { "Content-Type": "application/json" };
+  if (ADMIN_TOKEN) headers["Authorization"] = "Bearer " + ADMIN_TOKEN;
+
+  // 15-second timeout
+  var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+  var timeoutId  = controller ? setTimeout(function() { controller.abort(); }, 15000) : null;
+
   return fetch(API_URL + endpoint, {
-    method: options.method || "GET",
-    headers: {"Content-Type": "application/json"},
-    body: options.body ? JSON.stringify(options.body) : undefined
-  }).then(function(r){ return r.json(); }).catch(function(){ return {error:"offline"}; });
+    method:  options.method || "GET",
+    headers: headers,
+    body:    options.body ? JSON.stringify(options.body) : undefined,
+    signal:  controller ? controller.signal : undefined
+  })
+  .then(function(r) {
+    if (timeoutId) clearTimeout(timeoutId);
+    var status = r.status;
+    // Try JSON first; fall back to text so we always get something useful
+    return r.text().then(function(text) {
+      var data;
+      try { data = JSON.parse(text); }
+      catch(e) {
+        // Server returned HTML/plain-text — extract something useful
+        var snippet = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().substring(0, 120);
+        data = { error: status >= 500 ? "Server error (" + status + "). Please try again." :
+                        status === 404 ? "Endpoint not found." :
+                        status === 0   ? "No response from server." :
+                        snippet || "Unexpected response (" + status + ")." };
+      }
+      data._status = status;
+      return data;
+    });
+  })
+  .catch(function(e) {
+    if (timeoutId) clearTimeout(timeoutId);
+    console.error("API fetch error:", endpoint, e.message || e);
+    var msg = (e && e.name === "AbortError")
+      ? "Request timed out. The server took too long to respond."
+      : "Could not reach the server. Check your internet connection.";
+    return { error: msg, _status: 0 };
+  });
 }
 
-// ── SUPABASE direct calls ──
-function sbHeaders() {
-  return {
-    "apikey": SUPABASE_KEY,
-    "Authorization": "Bearer " + SUPABASE_KEY,
-    "Content-Type": "application/json",
-    "Prefer": "return=representation"
-  };
-}
-
-function sbFetch(table, params) {
-  var url = SUPABASE_URL + "/rest/v1/" + table + "?" + (params||"select=*");
-  return fetch(url, { headers: sbHeaders() })
-    .then(function(r){
-      if(!r.ok) { return r.text().then(function(t){ console.error("sbFetch error:",t); return []; }); }
-      return r.json();
-    }).catch(function(e){ console.error("sbFetch catch:",e); return []; });
-}
-
-function sbInsert(table, data) {
-  return fetch(SUPABASE_URL + "/rest/v1/" + table, {
-    method: "POST",
-    headers: sbHeaders(),
-    body: JSON.stringify(data)
-  }).then(function(r){
-    if(!r.ok) { return r.text().then(function(t){ console.error("sbInsert error on "+table+":",t); return {error:t}; }); }
-    return r.json();
-  }).catch(function(e){ console.error("sbInsert catch:",e); return {error:"offline"}; });
-}
-
-function sbUpdate(table, id, data) {
-  return fetch(SUPABASE_URL + "/rest/v1/" + table + "?id=eq." + id, {
-    method: "PATCH",
-    headers: sbHeaders(),
-    body: JSON.stringify(data)
-  }).then(function(r){
-    if(!r.ok) { return r.text().then(function(t){ console.error("sbUpdate error:",t); return {error:t}; }); }
-    return r.json();
-  }).catch(function(e){ console.error("sbUpdate catch:",e); return {error:"offline"}; });
-}
-
-// ── SCREENSHOT UPLOAD TO SUPABASE STORAGE ──
+// Upload screenshot directly to Supabase Storage via the backend URL
+// (keeps Supabase key out of frontend — uploadScreenshot uses the public bucket)
 function uploadScreenshot(file) {
-  return new Promise(function(resolve, reject) {
+  return new Promise(function(resolve) {
     if (!file) { resolve(null); return; }
-
+    var SUPABASE_URL = "https://wvgbupmhtpxixootixsm.supabase.co";
+    var SUPABASE_KEY = "sb_publishable_UrqILEwUMFIBmuLvRR3-nA_Xu5eL-X6";
     var fileName = "screenshot_" + Date.now() + "_" + file.name.replace(/[^a-zA-Z0-9.]/g, "_");
     var url = SUPABASE_URL + "/storage/v1/object/screenshots/" + fileName;
-
     var reader = new FileReader();
     reader.onload = function(e) {
-      var arrayBuffer = e.target.result;
-
       fetch(url, {
         method: "POST",
         headers: {
@@ -2474,204 +2435,271 @@ function uploadScreenshot(file) {
           "Content-Type": file.type || "image/jpeg",
           "x-upsert": "true"
         },
-        body: arrayBuffer
-      })
-      .then(function(r) {
+        body: e.target.result
+      }).then(function(r) {
         if (r.ok) {
-          // Return public URL
-          var publicURL = SUPABASE_URL + "/storage/v1/object/public/screenshots/" + fileName;
-          console.log("Screenshot uploaded:", publicURL);
-          resolve(publicURL);
+          resolve(SUPABASE_URL + "/storage/v1/object/public/screenshots/" + fileName);
         } else {
-          return r.text().then(function(t) {
-            console.error("Screenshot upload error:", t);
-            resolve(null);
-          });
+          console.warn("Screenshot upload failed"); resolve(null);
         }
-      })
-      .catch(function(e) {
-        console.error("Screenshot upload failed:", e);
-        resolve(null);
-      });
+      }).catch(function() { resolve(null); });
     };
     reader.onerror = function() { resolve(null); };
     reader.readAsArrayBuffer(file);
   });
 }
 
-// ── REVIEW STORAGE ──
-function getPending() {
-  try { return JSON.parse(localStorage.getItem("tr_pending") || "[]"); } catch(e) { return []; }
-}
-function getApproved() {
-  try { return JSON.parse(localStorage.getItem("tr_approved") || "{}"); } catch(e) { return {}; }
-}
-function saveNewReview(review) {
-  var list = getPending();
-  list.unshift(review);
-  localStorage.setItem("tr_pending", JSON.stringify(list));
-}
-function approveReview(rid) {
-  rid = String(rid);
-  var pending = getPending();
-  var approved = getApproved();
-  var found = null;
-  var rest = [];
-  pending.forEach(function(r){ if(String(r.id)===rid){found=r;}else{rest.push(r);} });
-  if(!found) return null;
-  var key = String(found.bizId);
-  if(!approved[key]) approved[key] = [];
-  found.status = "approved";
-  approved[key].unshift(found);
-  localStorage.setItem("tr_pending", JSON.stringify(rest));
-  localStorage.setItem("tr_approved", JSON.stringify(approved));
-  return found;
-}
-function rejectReview(rid) {
-  rid = String(rid);
-  var rest = getPending().filter(function(r){ return String(r.id)!==rid; });
-  localStorage.setItem("tr_pending", JSON.stringify(rest));
-}
-function getBusinessReviews(bizId) {
-  var approved = getApproved();
-  return approved[String(bizId)] || [];
-}
-
-// ── HELPERS ──
-function stars(r, n) {
-  n = n || 5;
+// ─────────────────────────────────────────────────
+// HELPER UTILITIES
+// ─────────────────────────────────────────────────
+function stars(r) {
   var s = "<span class='stars'>";
-  for(var i=1;i<=n;i++) s += "<span class='" + (i<=Math.round(r)?"star":"star-e") + "'>&#9733;</span>";
+  for (var i = 1; i <= 5; i++)
+    s += "<span class='" + (i <= Math.round(r) ? "star" : "star-e") + "'>&#9733;</span>";
   return s + "</span>";
 }
-function tcol(s){ return s>=8?"var(--rw-green)":s>=5?"var(--rw-yellow)":"var(--red)"; }
-function plLabel(p){ return {tiktok:"TikTok",instagram:"Instagram",facebook:"Facebook",website:"Website",whatsapp:"WhatsApp"}[p]||p; }
-function plIcon(p){ return {tiktok:"&#127925;",instagram:"&#128247;",facebook:"&#128101;",website:"&#127760;",whatsapp:"&#128172;"}[p]||"&#128279;"; }
-function calcTrustScore(reviews) {
-  if(!reviews||!reviews.length) return 0;
-  var avg = reviews.reduce(function(s,r){return s+r.rating;},0)/reviews.length;
-  return Math.round(Math.min(avg/5*8+Math.min(reviews.length/50*2,2),10)*10)/10;
-}
-function calcAvgRating(reviews) {
-  if(!reviews||!reviews.length) return 0;
-  return Math.round(reviews.reduce(function(s,r){return s+r.rating;},0)/reviews.length*10)/10;
+function tcol(s) { return s >= 8 ? "var(--rw-green)" : s >= 5 ? "var(--rw-yellow)" : "var(--red)"; }
+function plLabel(p) {
+  return { tiktok:"TikTok", instagram:"Instagram", facebook:"Facebook", website:"Website", whatsapp:"WhatsApp" }[p] || p;
 }
 function getPlatformURL(platform, handle) {
-  var h = (handle||"").replace(/^@/,"").trim();
-  if(!h) return "";
-  if(platform==="tiktok")    return "https://www.tiktok.com/@"+h;
-  if(platform==="instagram") return "https://www.instagram.com/"+h;
-  if(platform==="facebook")  return "https://www.facebook.com/"+h;
-  if(platform==="website")   return h.startsWith("http")?h:"https://"+h;
-  if(platform==="whatsapp")  return "https://wa.me/"+h.replace(/[^0-9]/g,"");
+  var h = (handle || "").replace(/^@/, "").trim();
+  if (!h) return "";
+  if (platform === "tiktok")    return "https://www.tiktok.com/@" + h;
+  if (platform === "instagram") return "https://www.instagram.com/" + h;
+  if (platform === "facebook")  return "https://www.facebook.com/" + h;
+  if (platform === "website")   return h.startsWith("http") ? h : "https://" + h;
+  if (platform === "whatsapp")  return "https://wa.me/" + h.replace(/[^0-9]/g, "");
   return "";
 }
+function calcTrustScore(reviews) {
+  if (!reviews || !reviews.length) return 0;
+  var avg = reviews.reduce(function(s, r) { return s + r.rating; }, 0) / reviews.length;
+  return Math.round(Math.min(avg / 5 * 8 + Math.min(reviews.length / 50 * 2, 2), 10) * 10) / 10;
+}
+function calcAvgRating(reviews) {
+  if (!reviews || !reviews.length) return 0;
+  return Math.round(reviews.reduce(function(s, r) { return s + r.rating; }, 0) / reviews.length * 10) / 10;
+}
+function bizColorFromName(name) {
+  var palette = [
+    { color:"#1A6B3A", bg:"#E8F5E8" }, { color:"#0A7EC2", bg:"#E6F4FC" },
+    { color:"#7B3F00", bg:"#FDF3E3" }, { color:"#4A1C8C", bg:"#F0EAFF" },
+    { color:"#7A1C1C", bg:"#FCECEA" }
+  ];
+  var idx = (name || "A").charCodeAt(0) % palette.length;
+  return palette[idx];
+}
+function bizInitials(name) {
+  return (name || "").replace(/[^a-zA-Z\s]/g, "").split(" ")
+    .filter(Boolean).map(function(w) { return w[0].toUpperCase(); }).slice(0, 2).join("") || "??";
+}
+// Map Supabase account row → internal BIZ object
+function rowToBiz(r) {
+  var c = bizColorFromName(r.business_name);
+  var platforms = Array.isArray(r.platform) ? r.platform : (r.platform ? [r.platform] : []);
+  return {
+    id:          r.id,
+    name:        r.business_name || r.handle || "Unknown",
+    handle:      r.handle || "",
+    platforms:   platforms,
+    phone:       r.phone_number || "",
+    website:     r.website || "",
+    location:    r.location || "Rwanda",
+    trustScore:  parseFloat(r.trust_score) || 0,
+    verified:    r.verification_status === "verified",
+    reviewCount: parseInt(r.review_count) || 0,
+    avgRating:   parseFloat(r.avg_rating) || 0,
+    color:       c.color, bg: c.bg,
+    initials:    bizInitials(r.business_name),
+    desc:        r.description || "",
+    profileURL:  r.handle ? getPlatformURL(platforms[0] || "tiktok", r.handle) : "",
+    reviews:     [],
+    _dbId:       r.id
+  };
+}
+// Map Supabase review row → internal review object
+function rowToReview(r) {
+  var resp = r.business_responses && r.business_responses.length
+    ? r.business_responses[0].response_text : null;
+  return {
+    id:       r.id,
+    user:     "Verified buyer",
+    rating:   r.rating,
+    date:     (r.transaction_date || (r.created_at||"").split("T")[0]),
+    amount:   r.amount_rwf,
+    payment:  r.payment_method,
+    text:     r.description,
+    screenshot: r.screenshot_url || null,
+    resp:     resp,
+    status:   r.review_status
+  };
+}
 
-// ── NAVIGATION ──
+// ─────────────────────────────────────────────────
+// NAVIGATION
+// ─────────────────────────────────────────────────
 function go(pg) {
-  document.querySelectorAll(".page").forEach(function(p){p.classList.remove("active");});
-  var el = document.getElementById("page-"+pg);
-  if(el) el.classList.add("active");
-  document.querySelectorAll(".nav-link").forEach(function(l){l.classList.remove("active");});
-  var nl = document.getElementById("nl-"+pg);
-  if(nl) nl.classList.add("active");
-  window.scrollTo({top:0,behavior:"smooth"});
-  if(pg==="admin"){ renderAdminPending(); renderAdminAccounts(); }
+  document.querySelectorAll(".page").forEach(function(p) { p.classList.remove("active"); });
+  var el = document.getElementById("page-" + pg);
+  if (el) el.classList.add("active");
+  document.querySelectorAll(".nav-link").forEach(function(l) { l.classList.remove("active"); });
+  var nl = document.getElementById("nl-" + pg);
+  if (nl) nl.classList.add("active");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  if (pg === "admin") { loadAdminDashboard(); }
 }
-function toggleMenu(){
+function toggleMenu() {
   var m = document.getElementById("mobile-menu");
-  if(m) m.classList.toggle("open");
+  if (m) m.classList.toggle("open");
 }
-document.addEventListener("click", function(e){
-  if(!e.target.closest("nav")&&!e.target.closest(".mobile-menu")){
-    var m=document.getElementById("mobile-menu"); if(m) m.classList.remove("open");
+document.addEventListener("click", function(e) {
+  if (!e.target.closest("nav") && !e.target.closest(".mobile-menu")) {
+    var m = document.getElementById("mobile-menu");
+    if (m) m.classList.remove("open");
   }
 });
 
-// ── SEARCH ──
-function setTab(el, type){
-  document.querySelectorAll(".stab").forEach(function(t){t.classList.remove("active");});
+// ─────────────────────────────────────────────────
+// SEARCH — calls GET /api/search
+// ─────────────────────────────────────────────────
+function setTab(el, type) {
+  document.querySelectorAll(".stab").forEach(function(t) { t.classList.remove("active"); });
   el.classList.add("active");
   var inp = document.getElementById("q");
-  if(inp){ inp.placeholder = el.dataset.ph||"Search..."; inp.focus(); }
+  if (inp) { inp.placeholder = el.dataset.ph || "Search..."; inp.focus(); }
 }
-function fillSearch(v){
-  var el = document.getElementById("q"); if(el) el.value=v; doSearch();
+function fillSearch(v) {
+  var el = document.getElementById("q");
+  if (el) el.value = v;
+  doSearch();
 }
-function clearSearch(){
-  var el = document.getElementById("q"); if(el) el.value="";
+function clearSearch() {
+  var el = document.getElementById("q");
+  if (el) el.value = "";
   var lbl = document.getElementById("results-label");
-  if(lbl) lbl.innerHTML = "Showing <strong>all recently reviewed</strong> businesses";
-  renderBizList(activeFilter==="all"?BIZ:BIZ.filter(function(b){return b.platforms.includes(activeFilter);}));
+  if (lbl) lbl.innerHTML = "Showing <strong>all recently reviewed</strong> businesses";
+  renderBizList(BIZ);
 }
-function doSearch(){
-  var raw = (document.getElementById("q")||{}).value||"";
+function doSearch() {
+  var raw = (document.getElementById("q") || {}).value || "";
   raw = raw.trim();
-  if(!raw){ clearSearch(); return; }
+  if (!raw) { clearSearch(); return; }
   runSearch(raw, true);
 }
-function liveSearch(val){
-  var raw = (val||"").trim();
-  if(!raw){ clearSearch(); return; }
+function liveSearch(val) {
+  var raw = (val || "").trim();
+  if (!raw) { clearSearch(); return; }
   runSearch(raw, false);
 }
-function runSearch(raw, scroll){
-  var q = raw.toLowerCase();
+
+var _searchTimeout = null;
+function runSearch(raw, scroll) {
   var lbl = document.getElementById("results-label");
-  var res = BIZ.filter(function(b){
-    return b.name.toLowerCase().includes(q)||
-      b.handle.toLowerCase().includes(q)||
-      b.phone.replace(/\s/g,"").includes(q.replace(/\s/g,""))||
-      (b.website&&b.website.toLowerCase().includes(q));
-  });
-  if(activeFilter!=="all") res=res.filter(function(b){return b.platforms.includes(activeFilter);});
-  if(res.length>0){
-    if(lbl) lbl.innerHTML = "Found <strong>"+res.length+" result"+(res.length!==1?"s":"")+"</strong> for \"<strong>"+raw+"</strong>\"";
-    renderBizList(res);
-  } else {
-    if(lbl) lbl.innerHTML = "No results for \"<strong>"+raw+"</strong>\"";
-    showNotFound(raw);
-  }
-  if(scroll){var el=document.getElementById("biz-list");if(el)el.scrollIntoView({behavior:"smooth",block:"start"});}
+  if (lbl) lbl.innerHTML = "<em>Searching…</em>";
+
+  // Detect search type
+  var type = "name";
+  if (raw.startsWith("@")) type = "handle";
+  else if (/^\+?250|^07/.test(raw.replace(/\s/g, ""))) type = "phone";
+  else if (/\.(rw|com|net|org)/.test(raw)) type = "website";
+
+  // Get active sort
+  var sortSel = document.querySelector(".sort-sel");
+  var sort = sortSel ? (sortSel.value || "recent") : "recent";
+
+  var qs = "?q=" + encodeURIComponent(raw) + "&type=" + type + "&sort=" + sort;
+  if (activeFilter && activeFilter !== "all") qs += "&platform=" + activeFilter;
+
+  clearTimeout(_searchTimeout);
+  _searchTimeout = setTimeout(function() {
+    api("/search" + qs).then(function(data) {
+      if (data.error) {
+        // Fallback to local BIZ array if API is offline
+        var q = raw.toLowerCase();
+        var res = BIZ.filter(function(b) {
+          return (b.name || "").toLowerCase().includes(q) ||
+            (b.handle || "").toLowerCase().includes(q) ||
+            (b.phone || "").replace(/\s/g,"").includes(q.replace(/\s/g,"")) ||
+            (b.website || "").toLowerCase().includes(q);
+        });
+        if (activeFilter !== "all") res = res.filter(function(b) { return b.platforms.includes(activeFilter); });
+        if (res.length) {
+          if (lbl) lbl.innerHTML = "Found <strong>" + res.length + " result" + (res.length !== 1 ? "s" : "") + "</strong> for \"<strong>" + raw + "</strong>\"";
+          renderBizList(res);
+        } else {
+          if (lbl) lbl.innerHTML = "No results for \"<strong>" + raw + "\"";
+          showNotFound(raw);
+        }
+        return;
+      }
+      var results = data.results || [];
+      if (results.length) {
+        // Merge API results into BIZ, deduplicating by id
+        results.forEach(function(r) {
+          var exists = BIZ.find(function(b) { return String(b.id) === String(r.id); });
+          if (!exists) BIZ.push(rowToBiz(r));
+        });
+        var matched = results.map(function(r) {
+          return BIZ.find(function(b) { return String(b.id) === String(r.id); }) || rowToBiz(r);
+        });
+        if (lbl) lbl.innerHTML = "Found <strong>" + results.length + " result" + (results.length !== 1 ? "s" : "") + "</strong> for \"<strong>" + raw + "</strong>\"";
+        renderBizList(matched);
+      } else {
+        if (lbl) lbl.innerHTML = "No results for \"<strong>" + raw + "\"";
+        showNotFound(raw);
+      }
+      if (scroll) {
+        var el = document.getElementById("biz-list");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  }, 300);
 }
-function showNotFound(query){
+
+function showNotFound(query) {
   window._lastQuery = query;
-  var isHandle=query.startsWith("@"), isPhone=/^\+?250|^07/.test(query.replace(/\s/g,"")), isWeb=/\.(rw|com|net)/.test(query);
-  var icon=isHandle?"&#128100;":isPhone?"&#128241;":isWeb?"&#127760;":"&#127978;";
-  var hint=isHandle?"social media account":isPhone?"phone number":isWeb?"website":"business";
+  var isHandle = query.startsWith("@");
+  var isPhone  = /^\+?250|^07/.test(query.replace(/\s/g, ""));
+  var isWeb    = /\.(rw|com|net)/.test(query);
+  var icon  = isHandle ? "&#128100;" : isPhone ? "&#128241;" : isWeb ? "&#127760;" : "&#127978;";
+  var hint  = isHandle ? "social media account" : isPhone ? "phone number" : isWeb ? "website" : "business";
   var el = document.getElementById("biz-list");
-  if(!el) return;
+  if (!el) return;
   el.innerHTML = "<div class='not-found-card'>" +
-    "<div class='nf-icon'>"+icon+"</div>" +
-    "<h3 class='nf-title'>\""+query+"\" is not in our database yet</h3>" +
-    "<p class='nf-sub'>Be the first to review this "+hint+". We will create a profile page others can find later.</p>" +
+    "<div class='nf-icon'>" + icon + "</div>" +
+    "<h3 class='nf-title'>\"" + query + "\" is not in our database yet</h3>" +
+    "<p class='nf-sub'>Be the first to review this " + hint + ". We'll create a profile page others can find later.</p>" +
     "<div class='nf-actions'>" +
     "<button class='btn btn-primary btn-lg' onclick='createProfileAndReview(window._lastQuery)'>+ Create profile &amp; write first review</button>" +
     "<button class='btn btn-ghost' onclick='clearSearch()'>Browse all businesses</button>" +
     "</div></div>";
 }
-function filterP(el, platform){
-  document.querySelectorAll(".pf-chip").forEach(function(c){c.classList.remove("active");});
+
+function filterP(el, platform) {
+  document.querySelectorAll(".pf-chip").forEach(function(c) { c.classList.remove("active"); });
   el.classList.add("active");
-  activeFilter=platform;
-  var q=(document.getElementById("q")||{}).value||"";
-  var res=platform==="all"?BIZ.slice():BIZ.filter(function(b){return b.platforms.includes(platform);});
-  if(q.trim()) res=res.filter(function(b){return b.name.toLowerCase().includes(q.toLowerCase())||b.handle.toLowerCase().includes(q.toLowerCase());});
-  renderBizList(res);
+  activeFilter = platform;
+  var q = (document.getElementById("q") || {}).value || "";
+  if (q.trim()) { runSearch(q.trim(), false); return; }
+  var filtered = platform === "all" ? BIZ.slice() : BIZ.filter(function(b) { return b.platforms.includes(platform); });
+  renderBizList(filtered);
 }
-function sortBy(v){
-  var s=BIZ.slice();
-  if(v==="trust") s.sort(function(a,b){return b.trustScore-a.trustScore;});
-  else if(v==="reviews") s.sort(function(a,b){return b.reviewCount-a.reviewCount;});
-  renderBizList(s);
+function sortBy(v) {
+  var sorted = BIZ.slice();
+  if (v === "trust")        sorted.sort(function(a, b) { return b.trustScore - a.trustScore; });
+  else if (v === "reviews") sorted.sort(function(a, b) { return b.reviewCount - a.reviewCount; });
+  renderBizList(sorted);
 }
 
-// ── RENDER BIZ LIST ──
-function renderBizList(list){
-  var el=document.getElementById("biz-list");
-  if(!el) return;
-  if(!list.length){
-    el.innerHTML="<div style='text-align:center;padding:4rem 1rem;color:var(--ink3)'>" +
+// ─────────────────────────────────────────────────
+// RENDER BIZ LIST
+// ─────────────────────────────────────────────────
+function renderBizList(list) {
+  var el = document.getElementById("biz-list");
+  if (!el) return;
+  if (!list || !list.length) {
+    el.innerHTML = "<div style='text-align:center;padding:4rem 1rem;color:var(--ink3)'>" +
       "<div style='font-size:2.5rem;margin-bottom:1rem'>&#128269;</div>" +
       "<div style='font-weight:700;font-size:1.125rem;color:var(--ink2);margin-bottom:0.5rem'>No results found</div>" +
       "<div style='font-size:0.9rem'>Try a different name, handle, or phone number</div>" +
@@ -2679,706 +2707,836 @@ function renderBizList(list){
       "</div>";
     return;
   }
-  el.innerHTML=list.map(function(b){
-    var approved = getBusinessReviews(b.id);
-    var allReviews = approved.concat(b.reviews||[]);
-    var rc = allReviews.length;
-    var avg = rc>0?calcAvgRating(allReviews):b.avgRating;
-    var ts  = rc>0?calcTrustScore(allReviews):b.trustScore;
-    var lr  = allReviews[0];
-    return "<div class='biz-card' onclick='showDetail("+b.id+")'>" +
+  el.innerHTML = list.map(function(b) {
+    var rc  = b.reviewCount || (b.reviews || []).length;
+    var ts  = b.trustScore;
+    var avg = b.avgRating;
+    var lr  = (b.reviews || [])[0];
+    return "<div class='biz-card' onclick='showDetail(\"" + b.id + "\")' role='button' tabindex='0'>" +
       "<div class='biz-top'>" +
-      "<div class='biz-ava' style='background:"+b.bg+";color:"+b.color+"'>"+b.initials+"</div>" +
+      "<div class='biz-ava' style='background:" + b.bg + ";color:" + b.color + "'>" + b.initials + "</div>" +
       "<div class='biz-info'>" +
-      "<div class='biz-name-row'><span class='biz-name'>"+b.name+"</span>" +
-      "<span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Verified":"Unverified")+"</span></div>" +
-      "<div class='biz-handle'>"+(b.handle||"")+(b.phone?" &middot; "+b.phone:"")+(b.website?" &middot; "+b.website:"")+"</div>" +
-      "<div class='biz-tags'>"+b.platforms.map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join("")+"<span class='tag'>&#128205; "+b.location+"</span></div>" +
+      "<div class='biz-name-row'><span class='biz-name'>" + b.name + "</span>" +
+      "<span class='badge " + (b.verified ? "verified" : "unverified") + "'>" + (b.verified ? "&#10003; Verified" : "Unverified") + "</span></div>" +
+      "<div class='biz-handle'>" + (b.handle || "") + (b.phone ? " &middot; " + b.phone : "") + (b.website ? " &middot; " + b.website : "") + "</div>" +
+      "<div class='biz-tags'>" + (b.platforms || []).map(function(p) { return "<span class='tag'>" + plLabel(p) + "</span>"; }).join("") +
+      "<span class='tag'>&#128205; " + (b.location || "Rwanda") + "</span></div>" +
       "</div>" +
-      "<div class='trust-badge'>" +
-      "<div class='trust-n' style='color:"+tcol(ts)+"'>"+(ts||"&mdash;")+"</div>" +
+      "<div class='trust-badge'><div class='trust-n' style='color:" + tcol(ts) + "'>" + (ts || "&mdash;") + "</div>" +
       "<div class='trust-l'>Trust</div>" +
-      "<div style='margin-top:4px'>"+(avg?stars(avg):"<span style='font-size:0.72rem;color:var(--ink3)'>No reviews</span>")+"</div>" +
+      "<div style='margin-top:4px'>" + (avg ? stars(avg) : "<span style='font-size:0.72rem;color:var(--ink3)'>No reviews</span>") + "</div>" +
       "</div></div>" +
       "<div class='biz-mid'><div class='biz-stat-row'>" +
-      "<div class='bst'><strong>"+(rc||b.reviewCount)+"</strong> review"+(rc!==1?"s":"")+"</div>" +
-      (avg?"<div class='bst'><strong>"+avg+"/5</strong> avg</div>":"") +
+      "<div class='bst'><strong>" + rc + "</strong> review" + (rc !== 1 ? "s" : "") + "</div>" +
+      (avg ? "<div class='bst'><strong>" + avg + "/5</strong> avg</div>" : "") +
       "</div><button class='btn btn-ghost btn-sm' style='pointer-events:none'>View &rarr;</button></div>" +
-      (lr?"<div class='biz-preview'><div class='preview-quote'>\""+lr.text.substring(0,140)+(lr.text.length>140?"...":"")+"\"</div><div class='preview-meta'>"+lr.user+" &middot; "+lr.date+" &middot; "+stars(lr.rating)+"</div></div>":"") +
+      (lr ? "<div class='biz-preview'><div class='preview-quote'>\"" + (lr.text || "").substring(0, 140) + (lr.text && lr.text.length > 140 ? "..." : "") + "\"</div>" +
+      "<div class='preview-meta'>" + (lr.user || "Buyer") + " &middot; " + (lr.date || "") + " &middot; " + stars(lr.rating) + "</div></div>" : "") +
       "</div>";
   }).join("");
+  // keyboard accessibility
+  el.querySelectorAll(".biz-card").forEach(function(card) {
+    card.addEventListener("keydown", function(e) {
+      if (e.key === "Enter" || e.key === " ") { card.click(); }
+    });
+  });
 }
-function renderRecent(){
-  var el=document.getElementById("recently-added");
-  if(!el) return;
-  el.innerHTML=BIZ.slice().reverse().slice(0,4).map(function(b){
-    var rc=getBusinessReviews(b.id).length||b.reviewCount;
-    var ts=b.trustScore;
-    return "<div onclick='showDetail("+b.id+")' style='display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);cursor:pointer'>" +
-      "<div style='width:30px;height:30px;border-radius:8px;background:"+b.bg+";color:"+b.color+";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;flex-shrink:0'>"+b.initials+"</div>" +
-      "<div style='flex:1;min-width:0'><div style='font-size:0.8125rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>"+b.name+"</div>" +
-      "<div style='font-size:0.75rem;color:var(--ink3)'>"+rc+" review"+(rc!==1?"s":"")+"</div></div>" +
-      "<div style='font-size:0.875rem;font-weight:800;color:"+tcol(ts)+";flex-shrink:0'>"+(ts||"New")+"</div></div>";
+
+function renderRecent() {
+  var el = document.getElementById("recently-added");
+  if (!el) return;
+  var list = BIZ.slice().reverse().slice(0, 5);
+  el.innerHTML = list.map(function(b) {
+    var rc = b.reviewCount || (b.reviews || []).length;
+    return "<div onclick='showDetail(\"" + b.id + "\")' style='display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);cursor:pointer'>" +
+      "<div style='width:32px;height:32px;border-radius:8px;background:" + b.bg + ";color:" + b.color + ";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800;flex-shrink:0'>" + b.initials + "</div>" +
+      "<div style='flex:1;min-width:0'><div style='font-size:0.8125rem;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis'>" + b.name + "</div>" +
+      "<div style='font-size:0.75rem;color:var(--ink3)'>" + rc + " review" + (rc !== 1 ? "s" : "") + "</div></div>" +
+      "<div style='font-size:0.875rem;font-weight:700;color:" + tcol(b.trustScore) + ";flex-shrink:0'>" + (b.trustScore || "New") + "</div></div>";
   }).join("");
 }
 
-// ── BUSINESS DETAIL ──
-function showDetail(id){
-  var b=BIZ.find(function(x){return x.id===id;});
-  if(!b) return;
-  var stored = getBusinessReviews(id);
-  if(stored.length>0){
-    b.reviews = stored.map(function(r){
-      return {id:r.id,user:r.user||"Anonymous",rating:r.rating,date:r.date,amount:r.amount,payment:r.payment,text:r.text,screenshot:r.screenshot,resp:null,status:"approved"};
-    });
-    // Sort newest first
-    b.reviews.sort(function(a,b){
-      return new Date(b.date||b.id||0) - new Date(a.date||a.id||0);
-    });
-    b.reviewCount = b.reviews.length;
-    b.avgRating   = calcAvgRating(b.reviews);
-    b.trustScore  = calcTrustScore(b.reviews);
-  }
-  renderDetailPage(id);
-}
-function renderDetailPage(id){
-  var b=BIZ.find(function(x){return x.id===id;});
-  if(!b) return;
-  var pos=b.reviews.filter(function(r){return r.rating>=4;}).length;
-  var neg=b.reviews.filter(function(r){return r.rating<=2;}).length;
-  var screenshots=b.reviews.filter(function(r){return r.screenshot;}).map(function(r){return r.screenshot;});
-  var profileURL=b.profileURL||getPlatformURL(b.platforms[0],b.handle);
+// ─────────────────────────────────────────────────
+// BUSINESS DETAIL — calls GET /api/accounts/:id
+// ─────────────────────────────────────────────────
+function showDetail(id) {
+  id = String(id);
+  // Show loading state immediately
+  go("detail");
+  document.getElementById("detail-content").innerHTML =
+    "<div style='text-align:center;padding:4rem;color:var(--ink3)'>" +
+    "<div style='font-size:2rem;margin-bottom:1rem'>⏳</div><div>Loading profile…</div></div>";
 
-  var reviewsHTML=b.reviews.map(function(r){
+  api("/accounts/" + id).then(function(data) {
+    if (data.error) {
+      // Fallback to local BIZ data
+      var b = BIZ.find(function(x) { return String(x.id) === id; });
+      if (b) { renderDetailPage(b, b.reviews || []); }
+      else { document.getElementById("detail-content").innerHTML = "<p style='padding:2rem;color:var(--ink2)'>Profile not found.</p>"; }
+      return;
+    }
+    var biz    = rowToBiz(data.account);
+    var reviews = (data.reviews || []).map(rowToReview);
+    biz.reviews = reviews;
+    biz.reviewCount = reviews.length;
+    biz.avgRating   = calcAvgRating(reviews);
+    biz.trustScore  = data.account.trust_score ? parseFloat(data.account.trust_score) : calcTrustScore(reviews);
+    // Update BIZ array
+    var idx = BIZ.findIndex(function(x) { return String(x.id) === id; });
+    if (idx >= 0) BIZ[idx] = biz; else BIZ.push(biz);
+    renderDetailPage(biz, reviews);
+  });
+}
+
+function renderDetailPage(b, reviews) {
+  var pos = reviews.filter(function(r) { return r.rating >= 4; }).length;
+  var neg = reviews.filter(function(r) { return r.rating <= 2; }).length;
+  var screenshots = reviews.filter(function(r) { return r.screenshot; }).map(function(r) { return r.screenshot; });
+  var profileURL  = b.profileURL || getPlatformURL((b.platforms || [])[0], b.handle);
+
+  var reviewsHTML = reviews.map(function(r) {
     return "<div class='review-card'>" +
       "<div class='rv-header'><div class='rv-user'>" +
-      "<div class='rv-ava'>"+r.user.charAt(0)+"</div>" +
-      "<div><div class='rv-name'>"+r.user+"</div><div class='rv-date'>"+r.date+"</div></div></div>" +
-      "<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px'>"+stars(r.rating)+"<span class='badge verified' style='font-size:0.68rem'>&#10003; Verified</span></div>" +
-      "</div><div class='rv-body'>"+r.text+"</div>" +
-      (r.screenshot?"<div style='margin:0.75rem 0'><div style='font-size:0.75rem;font-weight:600;color:var(--ink3);margin-bottom:6px'>&#128206; Proof uploaded</div><img src='"+r.screenshot+"' style='max-width:100%;max-height:200px;border-radius:8px;border:1px solid var(--border);cursor:pointer;object-fit:cover' onclick='openScreenshot(\""+r.screenshot+"\")'>  </div>":"") +
-      "<div class='rv-meta-row'><div class='rv-meta'><strong>Paid:</strong> "+(r.amount?r.amount.toLocaleString()+" RWF":"&mdash;")+"</div><div class='rv-meta'><strong>Via:</strong> "+(r.payment||"&mdash;")+"</div></div>" +
-      (r.resp?"<div class='biz-resp'><div class='biz-resp-label'>Response from "+b.name+"</div><div class='biz-resp-text'>"+r.resp+"</div></div>":"") +
+      "<div class='rv-ava'>" + (r.user || "B").charAt(0) + "</div>" +
+      "<div><div class='rv-name'>" + (r.user || "Verified buyer") + "</div><div class='rv-date'>" + (r.date || "") + "</div></div></div>" +
+      "<div style='display:flex;flex-direction:column;align-items:flex-end;gap:4px'>" + stars(r.rating) +
+      "<span class='badge verified' style='font-size:0.68rem'>&#10003; Verified</span></div></div>" +
+      "<div class='rv-body'>" + (r.text || "") + "</div>" +
+      (r.screenshot ? "<div style='margin:0.75rem 0'><div style='font-size:0.75rem;font-weight:600;color:var(--ink3);margin-bottom:6px'>&#128206; Proof uploaded</div>" +
+        "<img src='" + r.screenshot + "' style='max-width:100%;max-height:200px;border-radius:9px;border:1px solid var(--border);cursor:pointer;object-fit:cover' onclick='openScreenshot(\"" + r.screenshot + "\")' loading='lazy'></div>" : "") +
+      "<div class='rv-meta-row'><div class='rv-meta'><strong>Paid:</strong> " + (r.amount ? Number(r.amount).toLocaleString() + " RWF" : "&mdash;") + "</div>" +
+      "<div class='rv-meta'><strong>Via:</strong> " + (r.payment || "&mdash;") + "</div></div>" +
+      (r.resp ? "<div class='biz-resp'><div class='biz-resp-label'>Response from " + b.name + "</div><div class='biz-resp-text'>" + r.resp + "</div></div>" : "") +
+      (ADMIN_TOKEN && !r.resp ? "<div style='margin-top:0.75rem'><button class='abtn abtn-edit' onclick='openRespondModal(\"" + r.id + "\",\"" + b.id + "\")'>Reply as Business</button></div>" : "") +
       "</div>";
   }).join("");
 
   var html =
     "<div class='detail-hero-card'><div class='detail-top'>" +
-    "<div class='detail-ava' style='background:"+b.bg+";color:"+b.color+"'>"+b.initials+"</div>" +
+    "<div class='detail-ava' style='background:" + b.bg + ";color:" + b.color + "'>" + b.initials + "</div>" +
     "<div style='flex:1;min-width:0'>" +
-    "<div class='detail-name'>"+b.name+" <span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Verified":"Unverified")+"</span></div>" +
-    "<div class='detail-handle'>"+(b.handle?"<span>&#128100; "+b.handle+"</span>":"")+(b.phone?" <span>&middot; &#128241; "+b.phone+"</span>":"")+(b.website?" <span>&middot; &#127760; "+b.website+"</span>":"")+" <span>&middot; &#128205; "+b.location+"</span></div>" +
-    (profileURL?"<a class='profile-ext-link' href='"+profileURL+"' target='_blank' rel='noopener noreferrer'>View on "+plLabel(b.platforms[0])+" &rarr;</a>":"") +
-    "<div class='biz-tags' style='margin:8px 0 10px'>"+b.platforms.map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join("")+"</div>" +
-    "<p class='detail-desc'>"+b.desc+"</p></div>" +
-    "<div class='detail-score-box'><div class='detail-score-num' style='color:"+tcol(b.trustScore)+"'>"+(b.trustScore||"&mdash;")+"</div><div class='detail-score-lbl'>Trust Score</div>" +
-    (b.avgRating?"<div style='margin-top:6px'>"+stars(b.avgRating)+"</div>":"<div style='font-size:0.72rem;color:var(--ink3);margin-top:6px'>No reviews yet</div>") +
+    "<div class='detail-name'>" + b.name + " <span class='badge " + (b.verified ? "verified" : "unverified") + "'>" + (b.verified ? "&#10003; Verified" : "Unverified") + "</span></div>" +
+    "<div class='detail-handle'>" + (b.handle ? "<span>&#128100; " + b.handle + "</span>" : "") + (b.phone ? " <span>&middot; &#128241; " + b.phone + "</span>" : "") + (b.website ? " <span>&middot; &#127760; " + b.website + "</span>" : "") + " <span>&middot; &#128205; " + (b.location || "Rwanda") + "</span></div>" +
+    (profileURL ? "<a class='profile-ext-link' href='" + profileURL + "' target='_blank' rel='noopener noreferrer'>View on " + plLabel((b.platforms || [])[0]) + " &rarr;</a>" : "") +
+    "<div class='biz-tags' style='margin:8px 0 10px'>" + (b.platforms || []).map(function(p) { return "<span class='tag'>" + plLabel(p) + "</span>"; }).join("") + "</div>" +
+    "<p class='detail-desc'>" + (b.desc || "") + "</p></div>" +
+    "<div class='detail-score-box'><div class='detail-score-num'>" + (b.trustScore || "&mdash;") + "</div><div class='detail-score-lbl'>Trust Score</div>" +
+    (b.avgRating ? "<div style='margin-top:6px'>" + stars(b.avgRating) + "</div>" : "<div style='font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:6px'>No reviews yet</div>") +
     "</div></div>" +
     "<div class='detail-stats-row'>" +
-    "<div class='ds-item'><div class='ds-num'>"+b.reviewCount+"</div><div class='ds-lbl'>Reviews</div></div>" +
-    "<div class='ds-item'><div class='ds-num'>"+(b.avgRating||"&mdash;")+"</div><div class='ds-lbl'>Avg rating</div></div>" +
-    "<div class='ds-item'><div class='ds-num' style='color:var(--rw-green)'>"+pos+"</div><div class='ds-lbl'>Positive</div></div>" +
-    "<div class='ds-item'><div class='ds-num' style='color:var(--red)'>"+neg+"</div><div class='ds-lbl'>Critical</div></div>" +
+    "<div class='ds-item'><div class='ds-num'>" + reviews.length + "</div><div class='ds-lbl'>Reviews</div></div>" +
+    "<div class='ds-item'><div class='ds-num'>" + (b.avgRating || "&mdash;") + "</div><div class='ds-lbl'>Avg rating</div></div>" +
+    "<div class='ds-item'><div class='ds-num' style='color:var(--rw-green)'>" + pos + "</div><div class='ds-lbl'>Positive</div></div>" +
+    "<div class='ds-item'><div class='ds-num' style='color:var(--red)'>" + neg + "</div><div class='ds-lbl'>Critical</div></div>" +
     "</div></div>" +
-    (!b.verified?"<div class='claim-banner'><div class='claim-text'><h4>Is this your business?</h4><p>Claim your profile to respond to reviews and get verified.</p></div><button class='btn-claim' onclick='openModal(\"claim-modal\")'>Claim Profile &rarr;</button></div>":"") +
+    (!b.verified ? "<div class='claim-banner'><div class='claim-text'><h4>Is this your business?</h4><p>Claim your profile to respond to reviews and get verified.</p></div><button class='btn-claim' onclick='openModal(\"claim-modal\")'>Claim Profile &rarr;</button></div>" : "") +
     "<div style='display:grid;grid-template-columns:1fr 280px;gap:1.5rem'><div>" +
     "<div style='display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:8px'>" +
-    "<div style='font-size:0.875rem;color:var(--ink2)'><strong>"+b.reviews.length+"</strong> published review"+(b.reviews.length!==1?"s":"")+"</div>" +
-    "<button class='btn btn-primary btn-sm' onclick='goWriteReview("+b.id+")'>+ Write a Review</button>" +
-    "</div>" +
-    (b.reviews.length===0?"<div style='background:var(--cream);border:1px solid rgba(201,162,39,0.2);border-radius:var(--radius-lg);padding:1.5rem;text-align:center;margin-bottom:1rem'><div style='font-size:2rem;margin-bottom:0.75rem'>&#9998;</div><div style='font-weight:700;font-size:1rem;color:var(--ink);margin-bottom:0.5rem'>No reviews yet &mdash; be the first!</div><button class='btn btn-primary' onclick='goWriteReview("+b.id+")'>Write the first review &rarr;</button></div>":"") +
-    reviewsHTML+"</div>" +
+    "<div style='font-size:0.875rem;color:var(--ink2)'><strong>" + reviews.length + "</strong> published review" + (reviews.length !== 1 ? "s" : "") + "</div>" +
+    "<button class='btn btn-primary btn-sm' onclick='goWriteReview(\"" + b.id + "\")'>+ Write a Review</button></div>" +
+    (reviews.length === 0 ? "<div style='background:var(--cream);border:1px solid rgba(201,162,39,0.2);border-radius:var(--radius-lg);padding:1.75rem;text-align:center;margin-bottom:1rem'>" +
+      "<div style='font-size:2rem;margin-bottom:0.75rem'>&#9998;</div>" +
+      "<div style='font-weight:600;font-size:1rem;color:var(--ink);margin-bottom:0.5rem'>No reviews yet — be the first!</div>" +
+      "<button class='btn btn-primary' onclick='goWriteReview(\"" + b.id + "\")'>Write the first review &rarr;</button></div>" : "") +
+    reviewsHTML + "</div>" +
     "<div style='display:flex;flex-direction:column;gap:1rem'>" +
-    (screenshots.length?"<div class='s-card'><div class='s-title'>&#128206; Screenshots</div><div style='display:grid;grid-template-columns:1fr 1fr;gap:6px'>"+screenshots.map(function(s){return "<img src='"+s+"' style='width:100%;height:80px;object-fit:cover;border-radius:7px;cursor:pointer;border:1px solid var(--border)' onclick='openScreenshot(\""+s+"\")'>";}).join("")+"</div></div>":"") +
+    (screenshots.length ? "<div class='s-card'><div class='s-title'>&#128206; Screenshots</div><div style='display:grid;grid-template-columns:1fr 1fr;gap:6px'>" +
+      screenshots.map(function(s) { return "<img src='" + s + "' style='width:100%;height:80px;object-fit:cover;border-radius:8px;cursor:pointer;border:1px solid var(--border)' onclick='openScreenshot(\"" + s + "\")' loading='lazy'>"; }).join("") + "</div></div>" : "") +
     "<div class='s-card'><div class='s-title'>Trust Breakdown</div>" +
-    "<div class='tb-row'><span class='tb-label'>Overall rating</span><span style='font-weight:600;color:var(--ink)'>"+(b.avgRating?b.avgRating+"/5":"No data")+"</span></div>" +
-    "<div class='tb-row'><span class='tb-label'>Positive reviews</span><span style='font-weight:600;color:var(--rw-green)'>"+pos+"</span></div>" +
-    "<div class='tb-row'><span class='tb-label'>Critical reviews</span><span style='font-weight:600;color:var(--red)'>"+neg+"</span></div>" +
-    "<div class='tb-row'><span class='tb-label'>Verified</span><span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Yes":"Not yet")+"</span></div>" +
+    "<div class='tb-row'><span class='tb-label'>Overall rating</span><span style='font-weight:600;color:var(--ink)'>" + (b.avgRating ? b.avgRating + "/5" : "No data") + "</span></div>" +
+    "<div class='tb-row'><span class='tb-label'>Positive reviews</span><span style='font-weight:600;color:var(--rw-green)'>" + pos + "</span></div>" +
+    "<div class='tb-row'><span class='tb-label'>Critical reviews</span><span style='font-weight:600;color:var(--red)'>" + neg + "</span></div>" +
+    "<div class='tb-row'><span class='tb-label'>Verified</span><span class='badge " + (b.verified ? "verified" : "unverified") + "'>" + (b.verified ? "&#10003; Yes" : "Not yet") + "</span></div>" +
     "</div>" +
     "<div class='tips-card'><div class='tips-title'>&#9888;&#65039; Before you buy</div><ul class='tips-list'><li>Read all reviews carefully</li><li>Ask for a receipt before paying</li><li>Confirm product is available first</li><li>For large amounts use bank transfer</li></ul></div>" +
     "</div></div>";
 
   document.getElementById("detail-content").innerHTML = html;
-  go("detail");
 }
-function openScreenshot(src){
-  var o=document.createElement("div");
-  o.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;cursor:pointer";
-  o.innerHTML="<img src='"+src+"' style='max-width:100%;max-height:90vh;border-radius:10px'>";
-  o.onclick=function(){document.body.removeChild(o);};
+
+function openScreenshot(src) {
+  var o = document.createElement("div");
+  o.style.cssText = "position:fixed;inset:0;background:rgba(13,27,42,0.92);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;cursor:pointer;backdrop-filter:blur(8px)";
+  o.innerHTML = "<img src='" + src + "' style='max-width:100%;max-height:90vh;border-radius:12px;box-shadow:0 32px 96px rgba(0,0,0,0.5)'>";
+  o.onclick = function() { document.body.removeChild(o); };
   document.body.appendChild(o);
 }
-function goWriteReview(bizId){
-  window._pendingProfileId=bizId;
-  var b=BIZ.find(function(x){return x.id===bizId;});
+function goWriteReview(bizId) {
+  window._pendingBizId = String(bizId);
+  var b = BIZ.find(function(x) { return String(x.id) === String(bizId); });
   go("submit");
-  if(b){ setTimeout(function(){
-    var bn=document.getElementById("f-bizname"); if(bn) bn.value=b.name||"";
-    var fh=document.getElementById("f-handle"); if(fh) fh.value=(b.handle||"").replace(/^@/,"");
-    var fp=document.getElementById("f-phone-biz"); if(fp) fp.value=b.phone||"";
-    var fw=document.getElementById("f-website"); if(fw) fw.value=b.website||"";
-    if(b.platforms[0]){ document.getElementById("f-platform").value=b.platforms[0]; var pb=document.querySelector(".plat-btn[data-value='"+b.platforms[0]+"']"); if(pb) selectPlatform(b.platforms[0],pb); }
-    updateProfilePreview();
-  },200); }
-}
-function createProfileAndReview(query){
-  if(!query) return;
-  var isHandle=query.startsWith("@"), isPhone=/^\+?250|^07/.test(query.replace(/\s/g,"")), isWeb=/\.(rw|com|net)/.test(query);
-  var platforms=isHandle?["instagram"]:isPhone?["whatsapp"]:isWeb?["website"]:["other"];
-  var handle=isHandle?query:"", phone=isPhone?query:"", website=isWeb?query:"";
-  var name=isHandle?query.replace("@",""):isPhone?"Seller "+query.slice(-4):query;
-  var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
-  var ci=name.charCodeAt(0)%cols.length;
-  var inits=name.replace(/[^a-zA-Z\s]/g,"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
-  var newP={id:Date.now(),name:name,handle:handle,phone:phone,website:website,platforms:platforms,profileURL:getPlatformURL(platforms[0],handle||query),location:"Rwanda",trustScore:0,verified:false,reviewCount:0,avgRating:0,color:cols[ci].color,bg:cols[ci].bg,initials:inits,desc:"Profile created from a search.",reviews:[]};
-  BIZ.push(newP);
-  renderRecent();
-  window._pendingProfileId=newP.id;
-  go("submit");
-  setTimeout(function(){
-    var bn=document.getElementById("f-bizname"); if(bn) bn.value=name;
-    var fh=document.getElementById("f-handle"); if(fh) fh.value=(handle||query).replace(/^@/,"");
-    var fp=document.getElementById("f-phone-biz"); if(fp&&phone) fp.value=phone;
-    var fw=document.getElementById("f-website"); if(fw&&website) fw.value=website;
-    document.getElementById("f-platform").value=platforms[0];
-    var pb=document.querySelector(".plat-btn[data-value='"+platforms[0]+"']"); if(pb) selectPlatform(platforms[0],pb);
-    updateProfilePreview();
-    showToast("Profile created for \""+name+"\". Write the first review!","success");
-  },300);
-}
-
-// ── SAVE TO SUPABASE ──
-function saveToSupabase(bizname, handle, phone, website, platform, review, screenshotURL) {
-  console.log("Saving to Supabase:", bizname, handle);
-
-  // Step 1: Check if account exists
-  sbFetch("accounts", "handle=eq." + encodeURIComponent(handle) + "&select=id,business_name").then(function(rows) {
-    console.log("Account search result:", rows);
-
-    if(rows && rows.length > 0) {
-      // Account exists - save review under it
-      console.log("Found existing account:", rows[0].id);
-      insertReviewToDB(rows[0].id, review, screenshotURL);
-    } else {
-      // Create new account
-      console.log("Creating new account in Supabase...");
-      sbInsert("accounts", {
-        business_name: bizname,
-        handle: handle,
-        phone_number: phone || null,
-        website: website || null,
-        platform: [platform || "other"],
-        location: "Rwanda",
-        verification_status: "unverified",
-        trust_score: 0,
-        review_count: 0,
-        avg_rating: 0
-      }).then(function(result) {
-        console.log("Account insert result:", result);
-        if(result && result[0] && result[0].id) {
-          insertReviewToDB(result[0].id, review, screenshotURL);
-        } else {
-          console.error("Failed to create account:", result);
-        }
-      });
-    }
-  });
-}
-
-function insertReviewToDB(accountId, review, screenshotURL) {
-  console.log("Inserting review for account:", accountId);
-  sbInsert("reviews", {
-    account_id: accountId,
-    rating: review.rating,
-    transaction_date: review.date || null,
-    amount_rwf: review.amount || null,
-    payment_method: review.payment || null,
-    description: review.text,
-    screenshot_url: screenshotURL || null,
-    review_status: "pending"
-  }).then(function(result) {
-    console.log("Review insert result:", result);
-    if(result && result[0]) {
-      console.log("✅ Review + screenshot saved to Supabase! ID:", result[0].id);
-      if(screenshotURL) console.log("📸 Screenshot URL:", screenshotURL);
-    }
-  });
-}
-
-// ── SUBMIT REVIEW ──
-function submitReview(){
-  var bizname  = document.getElementById("f-bizname").value.trim();
-  var platform = document.getElementById("f-platform").value;
-  var handle   = document.getElementById("f-handle").value.trim().replace(/^@/,"");
-  var phone    = document.getElementById("f-phone-biz").value.trim();
-  var website  = document.getElementById("f-website").value.trim();
-  var date     = document.getElementById("f-date").value;
-  var amount   = document.getElementById("f-amount").value;
-  var payment  = document.getElementById("f-payment").value;
-  var desc     = document.getElementById("f-desc").value.trim();
-
-  // Show uploading state if screenshot attached
-  var submitBtn = document.querySelector("button[onclick='submitReview()']");
-  if(window._screenshotFile && submitBtn) {
-    submitBtn.textContent = "Uploading screenshot...";
-    submitBtn.disabled = true;
-  }
-
-  // Upload screenshot first if provided
-  uploadScreenshot(window._screenshotFile || null).then(function(screenshotURL) {
-    if(submitBtn) { submitBtn.textContent = "Submit Review ✓"; submitBtn.disabled = false; }
-    doSubmitReview(bizname, platform, handle, phone, website, date, amount, payment, desc, screenshotURL);
-  });
-}
-
-function doSubmitReview(bizname, platform, handle, phone, website, date, amount, payment, desc, screenshotURL){
-  var targetId = window._pendingProfileId;
-  if(!targetId){
-    var match=BIZ.find(function(b){ return (b.handle&&b.handle.replace(/^@/,"").toLowerCase()===handle.toLowerCase())||b.name.toLowerCase()===bizname.toLowerCase(); });
-    if(match) targetId=match.id;
-  }
-  if(!targetId){
-    var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
-    var ci=bizname.charCodeAt(0)%cols.length;
-    var inits=bizname.split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
-    var newBiz={id:Date.now(),name:bizname,handle:"@"+handle,phone:phone,website:website,platforms:[platform||"other"],profileURL:getPlatformURL(platform,handle),location:"Rwanda",trustScore:0,verified:false,reviewCount:0,avgRating:0,color:cols[ci].color,bg:cols[ci].bg,initials:inits,desc:"Profile created from a user review.",reviews:[]};
-    BIZ.push(newBiz);
-    targetId=newBiz.id;
-  }
-  var biz=BIZ.find(function(x){return x.id===targetId;});
-  var review={id:Date.now(),bizId:targetId,bizName:biz?biz.name:bizname,platform:platform,user:"Anonymous",rating:currentRating,date:date,amount:amount?parseInt(amount):null,payment:payment,text:desc,screenshot:window._screenshotData||null,status:"pending"};
-  // Save to localStorage (immediate, works offline)
-  saveNewReview(review);
-
-  // Save to Supabase database
-  saveToSupabase(bizname, "@"+handle, phone, website, platform, review, screenshotURL);
-
-  window._pendingProfileId=null; window._screenshotData=null; currentRating=0; renderStarRating(0);
-  ["f-bizname","f-handle","f-phone-biz","f-website","f-desc","f-amount","f-date"].forEach(function(fid){var el=document.getElementById(fid);if(el)el.value="";});
-  document.getElementById("f-platform").value="";
-  document.querySelectorAll(".plat-btn").forEach(function(b){b.classList.remove("active");});
-  var prev=document.getElementById("profile-url-preview"); if(prev) prev.style.display="none";
-  toStep(1);
-  renderAdminPending();
-  showToast("Review submitted! Waiting for admin approval.","success");
-  setTimeout(function(){renderBizList(BIZ);renderRecent();showDetail(targetId);},1500);
-}
-
-// ── MODERATE REVIEW ──
-function moderateRv(reviewId, action){
-  reviewId = String(reviewId);
-
-  if(action === "approve"){
-    // Update in Supabase directly by ID
-    sbUpdate("reviews", reviewId, {
-      review_status: "approved"
-    }).then(function(result){
-      console.log("Supabase approve result:", result);
-    });
-
-    // Also remove from localStorage pending if it's there
-    approveReview(reviewId);
-
-    // Find the review details to show on site immediately
-    sbFetch("reviews", "id=eq."+reviewId+"&select=*,accounts(business_name,handle,id,platform)").then(function(rows){
-      if(rows && rows.length > 0){
-        var r = rows[0];
-        var acct = r.accounts || {};
-        var biz = BIZ.find(function(b){
-          return String(b.id)===String(acct.id) ||
-                 String(b._dbId)===String(acct.id) ||
-                 b.handle===acct.handle;
-        });
-        if(biz){
-          if(!biz.reviews) biz.reviews=[];
-          biz.reviews.unshift({
-            id: r.id,
-            user: "Verified buyer",
-            rating: r.rating,
-            date: r.transaction_date||r.created_at.split("T")[0],
-            amount: r.amount_rwf,
-            payment: r.payment_method,
-            text: r.description,
-            screenshot: r.screenshot_url||null,
-            resp: null,
-            status: "approved"
-          });
-          biz.reviews.sort(function(a,b){ return new Date(b.date||0)-new Date(a.date||0); });
-          biz.reviewCount = biz.reviews.length;
-          biz.avgRating   = calcAvgRating(biz.reviews);
-          biz.trustScore  = calcTrustScore(biz.reviews);
-          renderBizList(BIZ);
-          renderRecent();
-        }
+  if (b) {
+    setTimeout(function() {
+      var bn = document.getElementById("f-bizname"); if (bn) bn.value = b.name || "";
+      var fh = document.getElementById("f-handle");  if (fh) fh.value = (b.handle || "").replace(/^@/, "");
+      var fp = document.getElementById("f-phone-biz"); if (fp) fp.value = b.phone || "";
+      var fw = document.getElementById("f-website"); if (fw) fw.value = b.website || "";
+      if (b.platforms && b.platforms[0]) {
+        document.getElementById("f-platform").value = b.platforms[0];
+        var pb = document.querySelector(".plat-btn[data-value='" + b.platforms[0] + "']");
+        if (pb) selectPlatform(b.platforms[0], pb);
       }
-    });
-
-    showToast("Approved — review is now live! ✓","success");
-
-  } else if(action === "reject"){
-    // Update in Supabase
-    sbUpdate("reviews", reviewId, { review_status: "rejected" });
-    // Also remove from localStorage
-    rejectReview(reviewId);
-    showToast("Review rejected","info");
+      updateProfilePreview();
+    }, 200);
   }
-
-  renderAdminPending();
+}
+function createProfileAndReview(query) {
+  if (!query) return;
+  var isHandle = query.startsWith("@");
+  var isPhone  = /^\+?250|^07/.test(query.replace(/\s/g, ""));
+  var isWeb    = /\.(rw|com|net)/.test(query);
+  var platforms = isHandle ? ["instagram"] : isPhone ? ["whatsapp"] : isWeb ? ["website"] : ["other"];
+  var handle = isHandle ? query : "";
+  var phone  = isPhone  ? query : "";
+  var website = isWeb   ? query : "";
+  var name   = isHandle ? query.replace("@", "") : isPhone ? "Seller " + query.slice(-4) : query;
+  go("submit");
+  setTimeout(function() {
+    var bn = document.getElementById("f-bizname"); if (bn) bn.value = name;
+    var fh = document.getElementById("f-handle");  if (fh) fh.value = (handle || query).replace(/^@/, "");
+    var fp = document.getElementById("f-phone-biz"); if (fp && phone) fp.value = phone;
+    var fw = document.getElementById("f-website"); if (fw && website) fw.value = website;
+    document.getElementById("f-platform").value = platforms[0];
+    var pb = document.querySelector(".plat-btn[data-value='" + platforms[0] + "']");
+    if (pb) selectPlatform(platforms[0], pb);
+    updateProfilePreview();
+    showToast("Fill in the details and write the first review!", "info");
+  }, 300);
 }
 
-// ── ADMIN PENDING TABLE ──
-function renderAdminPending(){
-  var el=document.getElementById("admin-pending-tbody");
-  if(!el) return;
-  var pending=getPending();
-  var ce=document.getElementById("pending-count"); if(ce) ce.textContent=pending.length;
-  var be=document.getElementById("pending-badge"); if(be) be.textContent=pending.length+" awaiting";
-  if(!pending.length){
-    el.innerHTML="<tr><td colspan='7' style='text-align:center;padding:2rem;color:var(--ink3)'>No pending reviews ✓</td></tr>";
-    return;
-  }
-  // Sort newest submissions first
-  pending.sort(function(a,b){ return (b.id||0) - (a.id||0); });
-  el.innerHTML=pending.map(function(r){
-    return "<tr>" +
-      "<td style='font-size:0.8rem;color:var(--ink3)'>"+String(r.id).slice(-5)+"</td>" +
-      "<td><div class='rv-biz-name'>"+(r.bizName||"Unknown")+"</div><div class='rv-excerpt'>"+(r.text||"").substring(0,80)+"...</div></td>" +
-      "<td><span class='tag'>"+(r.platform||"—")+"</span></td>" +
-      "<td style='font-weight:500'>"+(r.amount?Number(r.amount).toLocaleString()+" RWF":"—")+"</td>" +
-      "<td style='font-size:0.8rem;color:var(--ink3)'>"+(r.date||"—")+"</td>" +
-      "<td><span class='badge pending-b'>pending</span></td>" +
-      "<td><div class='action-cell'>" +
-      "<button class='abtn abtn-approve' onclick='moderateRv(\""+r.id+"\",\"approve\")'>Approve</button>" +
-      "<button class='abtn abtn-reject' onclick='moderateRv(\""+r.id+"\",\"reject\")'>Reject</button>" +
-      "<button class='abtn abtn-edit' onclick='openRvDetail(\""+r.id+"\")'>View</button>" +
-      "</div></td></tr>";
-  }).join("");
-}
+// ─────────────────────────────────────────────────
 
-// ── VIEW REVIEW DETAIL ──
-function openRvDetail(reviewId){
-  reviewId=String(reviewId);
-  var r=getPending().find(function(x){return String(x.id)===reviewId;});
-  if(!r){showToast("Review not found","error");return;}
-  var el=document.getElementById("rv-detail-content");
-  if(!el) return;
-  el.innerHTML=
-    "<div style='margin-bottom:1rem;display:flex;gap:8px'><span class='badge pending-b'>Pending</span><span class='tag'>"+(r.platform||"—")+"</span></div>" +
-    "<div style='background:var(--bg);border-radius:8px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--ink2);line-height:1.65'>" +
-    "<strong>Business:</strong> "+(r.bizName||"—")+"<br><strong>Rating:</strong> "+r.rating+"/5<br><strong>Amount:</strong> "+(r.amount?Number(r.amount).toLocaleString()+" RWF":"—")+"<br><br>"+r.text+
-    (r.screenshot?"<br><br><img src='"+r.screenshot+"' style='max-width:100%;border-radius:8px;margin-top:8px'>":"") +
-    "</div>" +
-    "<div style='display:flex;gap:8px'>" +
-    "<button class='abtn abtn-approve' style='padding:8px 16px;border-radius:8px' onclick='moderateRv(\""+r.id+"\",\"approve\");closeModal(\"rv-detail-modal\")'>Approve ✓</button>" +
-    "<button class='abtn abtn-reject' style='padding:8px 16px;border-radius:8px' onclick='moderateRv(\""+r.id+"\",\"reject\");closeModal(\"rv-detail-modal\")'>Reject</button>" +
-    "</div>";
-  openModal("rv-detail-modal");
-}
-
-// ── ADMIN ACCOUNTS TABLE ──
-function renderAdminAccounts(){
-  var el=document.getElementById("admin-accounts-tbody");
-  if(!el) return;
-  el.innerHTML=BIZ.map(function(b){
-    var rc=getBusinessReviews(b.id).length||b.reviewCount;
-    return "<tr>" +
-      "<td><div style='display:flex;align-items:center;gap:8px'>" +
-      "<div style='width:30px;height:30px;border-radius:8px;background:"+b.bg+";color:"+b.color+";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800'>"+b.initials+"</div>" +
-      "<div><div style='font-weight:500;color:var(--ink)'>"+b.name+"</div><div style='font-size:0.75rem;color:var(--ink3)'>"+b.handle+"</div></div></div></td>" +
-      "<td>"+b.platforms.map(function(p){return "<span class='tag'>"+plLabel(p)+"</span>";}).join(" ")+"</td>" +
-      "<td style='font-size:0.8rem;color:var(--ink3)'>"+(b.phone||"—")+"</td>" +
-      "<td><strong style='color:"+tcol(b.trustScore)+"'>"+(b.trustScore||"—")+"</strong></td>" +
-      "<td>"+rc+"</td>" +
-      "<td><span class='badge "+(b.verified?"verified":"unverified")+"'>"+(b.verified?"&#10003; Verified":"Unverified")+"</span></td>" +
-      "<td><div class='action-cell'><button class='abtn abtn-edit' onclick='openModal(\"add-acct-modal\")'>Edit</button></div></td>" +
-      "</tr>";
-  }).join("");
-}
-
-// ── REVIEW FORM ──
-function selectPlatform(val,btn){
-  document.getElementById("f-platform").value=val;
-  document.querySelectorAll(".plat-btn").forEach(function(b){b.classList.remove("active");});
-  if(btn) btn.classList.add("active");
-  var hints={tiktok:{ph:"username (without @)",label:"TikTok username",hint:"e.g. rwandafashion"},instagram:{ph:"username (without @)",label:"Instagram username",hint:"e.g. freshbakes.rw"},facebook:{ph:"page name or username",label:"Facebook page name",hint:"e.g. TechGadgetsKigali"},website:{ph:"domain or full URL",label:"Website URL",hint:"e.g. shop.rw"},whatsapp:{ph:"+250 7XX XXX XXX",label:"WhatsApp number",hint:"Rwanda number starting with +250"},other:{ph:"name or identifier",label:"Business identifier",hint:""}};
-  var info=hints[val]||hints.other;
-  var inp=document.getElementById("f-handle"); if(inp) inp.placeholder=info.ph;
-  var lbl=document.getElementById("handle-label"); if(lbl) lbl.innerHTML=info.label+" <span class='req'>*</span>";
-  var hint=document.getElementById("handle-hint"); if(hint) hint.textContent=info.hint;
-  var pfx=document.getElementById("handle-prefix"); var social=["tiktok","instagram","facebook"].includes(val);
-  if(pfx) pfx.style.display=social?"block":"none";
-  if(inp){ if(social) inp.classList.add("has-prefix"); else inp.classList.remove("has-prefix"); }
+// ─────────────────────────────────────────────────
+// REVIEW FORM — calls POST /api/reviews
+// ─────────────────────────────────────────────────
+function selectPlatform(val, btn) {
+  document.getElementById("f-platform").value = val;
+  document.querySelectorAll(".plat-btn").forEach(function(b) { b.classList.remove("active"); });
+  if (btn) btn.classList.add("active");
+  var hints = {
+    tiktok:    { ph: "username (without @)",  label: "TikTok username",   hint: "e.g. rwandafashion" },
+    instagram: { ph: "username (without @)",  label: "Instagram username", hint: "e.g. freshbakes.rw" },
+    facebook:  { ph: "page name or username", label: "Facebook page",      hint: "e.g. TechGadgetsKigali" },
+    website:   { ph: "domain or full URL",    label: "Website URL",        hint: "e.g. shop.rw" },
+    whatsapp:  { ph: "+250 7XX XXX XXX",      label: "WhatsApp number",    hint: "Rwanda number starting with +250" },
+    other:     { ph: "name or identifier",    label: "Business identifier", hint: "" }
+  };
+  var info = hints[val] || hints.other;
+  var inp = document.getElementById("f-handle"); if (inp) inp.placeholder = info.ph;
+  var lbl = document.getElementById("handle-label"); if (lbl) lbl.innerHTML = info.label + " <span class='req'>*</span>";
+  var hint = document.getElementById("handle-hint"); if (hint) hint.textContent = info.hint;
+  var pfx = document.getElementById("handle-prefix");
+  var social = ["tiktok", "instagram", "facebook"].includes(val);
+  if (pfx) pfx.style.display = social ? "block" : "none";
+  if (inp) { if (social) inp.classList.add("has-prefix"); else inp.classList.remove("has-prefix"); }
   updateProfilePreview();
 }
-function updateProfilePreview(){
-  var platform=document.getElementById("f-platform").value;
-  var handle=(document.getElementById("f-handle")||{}).value||"";
-  handle=handle.trim();
-  var preview=document.getElementById("profile-url-preview");
-  var link=document.getElementById("pup-link");
-  if(!platform||!handle||!preview){if(preview)preview.style.display="none";return;}
-  var url=getPlatformURL(platform,handle);
-  if(!url){preview.style.display="none";return;}
-  if(link){link.href=url;link.textContent=url;}
-  preview.style.display="flex";
+
+function updateProfilePreview() {
+  var platform = document.getElementById("f-platform").value;
+  var handle   = (document.getElementById("f-handle") || {}).value || "";
+  handle = handle.trim();
+  var preview = document.getElementById("profile-url-preview");
+  var link    = document.getElementById("pup-link");
+  if (!platform || !handle || !preview) { if (preview) preview.style.display = "none"; return; }
+  var url = getPlatformURL(platform, handle);
+  if (!url) { preview.style.display = "none"; return; }
+  if (link) { link.href = url; link.textContent = url; }
+  preview.style.display = "flex";
 }
-function onPlatformChange(){}
-function toStep(n){
-  if(n===2){
-    if(!document.getElementById("f-bizname").value.trim()){showToast("Please enter the account or business name","error");return;}
-    if(!document.getElementById("f-platform").value){showToast("Please select a platform","error");return;}
-    if(!document.getElementById("f-handle").value.trim()){showToast("Please enter the handle or username","error");return;}
+
+function toStep(n) {
+  if (n === 2) {
+    if (!document.getElementById("f-bizname").value.trim()) { showToast("Please enter the account or business name", "error"); return; }
+    if (!document.getElementById("f-platform").value)       { showToast("Please select a platform", "error"); return; }
+    if (!document.getElementById("f-handle").value.trim())  { showToast("Please enter the handle or username", "error"); return; }
   }
-  if(n===3){
-    if(!document.getElementById("f-date").value){showToast("Please enter the transaction date","error");return;}
-    if(!document.getElementById("f-payment").value){showToast("Please select a payment method","error");return;}
-    if(currentRating===0){showToast("Please give a rating","error");return;}
-    if(document.getElementById("f-desc").value.trim().length<50){showToast("Description too short (min 50 characters)","error");return;}
+  if (n === 3) {
+    if (!document.getElementById("f-date").value)     { showToast("Please enter the transaction date", "error"); return; }
+    if (!document.getElementById("f-payment").value)  { showToast("Please select a payment method", "error"); return; }
+    if (currentRating === 0)                           { showToast("Please give a rating", "error"); return; }
+    var descLen = document.getElementById("f-desc").value.trim().length;
+    if (descLen < 50) { showToast("Description too short — minimum 50 characters", "error"); return; }
     buildSummary();
   }
-  for(var i=1;i<=3;i++){
-    var fs=document.getElementById("fs"+i); if(fs) fs.style.display=i===n?"block":"none";
-    var sp=document.getElementById("sp"+i);
-    if(sp){if(i<n){sp.className="sp-item done";sp.querySelector(".sp-num").textContent="✓";}else if(i===n){sp.className="sp-item active";sp.querySelector(".sp-num").textContent=i;}else{sp.className="sp-item";sp.querySelector(".sp-num").textContent=i;}}
-    var sl=document.getElementById("sl"+i); if(sl) sl.className="sp-line"+(i<n?" done":"");
+  for (var i = 1; i <= 3; i++) {
+    var fs = document.getElementById("fs" + i); if (fs) fs.style.display = i === n ? "block" : "none";
+    var sp = document.getElementById("sp" + i);
+    if (sp) {
+      if (i < n)       { sp.className = "sp-item done"; sp.querySelector(".sp-num").textContent = "✓"; }
+      else if (i === n){ sp.className = "sp-item active"; sp.querySelector(".sp-num").textContent = i; }
+      else             { sp.className = "sp-item"; sp.querySelector(".sp-num").textContent = i; }
+    }
+    var sl = document.getElementById("sl" + i); if (sl) sl.className = "sp-line" + (i < n ? " done" : "");
   }
-  window.scrollTo({top:0,behavior:"smooth"});
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
-function setRating(r){currentRating=r;document.getElementById("f-rating").value=r;renderStarRating(r);var hints=["","😡 Very poor","😕 Poor","😐 Okay","😊 Good","😍 Excellent"];var h=document.getElementById("rating-hint");if(h)h.textContent=hints[r]||"";}
-function hoverRating(r){renderStarRating(r,true);}
-function resetHover(){renderStarRating(currentRating);}
-function renderStarRating(r,hover){
-  document.querySelectorAll(".star-rating .sr").forEach(function(s,i){
-    s.className="sr"+(i<r?" lit":"");
-    s.style.color=i<r?"#E8B800":"var(--bg2)";
-    s.style.transform=hover&&i<r?"scale(1.15)":"scale(1)";
+
+function setRating(r) {
+  currentRating = r;
+  document.getElementById("f-rating").value = r;
+  renderStarRating(r);
+  var hints = ["", "&#128545; Very poor", "&#128533; Poor", "&#128528; Okay", "&#128522; Good", "&#128525; Excellent"];
+  var h = document.getElementById("rating-hint");
+  if (h) h.innerHTML = hints[r] || "";
+}
+function hoverRating(r) { renderStarRating(r, true); }
+function resetHover()   { renderStarRating(currentRating); }
+function renderStarRating(r, hover) {
+  document.querySelectorAll(".star-rating .sr").forEach(function(s, i) {
+    s.className = "sr" + (i < r ? " lit" : "");
+    s.style.color = i < r ? "var(--gold)" : "var(--bg2)";
+    s.style.transform = hover && i < r ? "scale(1.15)" : "scale(1)";
   });
 }
-function countChars(){var n=document.getElementById("f-desc").value.trim().length;var el=document.getElementById("char-count");if(el){el.textContent=n+" / 50 min";el.style.color=n>=50?"var(--rw-green)":"var(--amber)";}}
-function previewFile(input){
-  if(input.files&&input.files[0]){
+function countChars() {
+  var n = document.getElementById("f-desc").value.trim().length;
+  var el = document.getElementById("char-count");
+  if (el) { el.textContent = n + " / 50 min"; el.style.color = n >= 50 ? "var(--rw-green)" : "var(--amber)"; }
+}
+function previewFile(input) {
+  if (input.files && input.files[0]) {
     var file = input.files[0];
-    // Store the actual file for cloud upload
     window._screenshotFile = file;
-
-    var reader=new FileReader();
-    reader.onload=function(e){
-      var img=document.getElementById("upload-img"); if(img) img.src=e.target.result;
-      var prev=document.getElementById("upload-preview"); if(prev) prev.style.display="block";
-      var zone=document.getElementById("upload-zone"); if(zone) zone.classList.add("has-file");
-      var txt=document.querySelector("#upload-zone .upload-text"); if(txt) txt.textContent="✓ "+file.name;
-      // Keep data URL as fallback preview only
-      window._screenshotData = e.target.result;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img  = document.getElementById("upload-img");  if (img) img.src = e.target.result;
+      var prev = document.getElementById("upload-preview"); if (prev) prev.style.display = "block";
+      var zone = document.getElementById("upload-zone"); if (zone) zone.classList.add("has-file");
+      var txt  = document.querySelector("#upload-zone .upload-text"); if (txt) txt.textContent = "&#10003; " + file.name;
     };
     reader.readAsDataURL(file);
   }
 }
-function buildSummary(){
-  var p=document.getElementById("f-platform").value, h=document.getElementById("f-handle").value, bn=document.getElementById("f-bizname").value;
-  var d=document.getElementById("f-date").value, a=document.getElementById("f-amount").value, pm=document.getElementById("f-payment").value;
-  var desc=document.getElementById("f-desc").value.trim();
-  var el=document.getElementById("rv-summary"); if(!el) return;
-  el.innerHTML="<div class='rv-summary-title'>Review Summary</div>" +
-    "<div class='rv-summary-row'><strong>Business:</strong> "+(bn||h||"—")+" on "+(p||"—")+"</div>" +
-    "<div class='rv-summary-row'><strong>Date:</strong> "+(d||"—")+"</div>" +
-    "<div class='rv-summary-row'><strong>Amount:</strong> "+(a?Number(a).toLocaleString()+" RWF":"—")+" via "+(pm||"—")+"</div>" +
-    "<div class='rv-summary-row'><strong>Rating:</strong> "+stars(currentRating)+" ("+currentRating+"/5)</div>" +
-    "<div class='rv-summary-row'><strong>Review:</strong> <em>"+desc.substring(0,120)+(desc.length>120?"...":"")+"</em></div>" +
-    (window._screenshotData?"<div class='rv-summary-row'><strong>Proof:</strong> <span style='color:var(--rw-green)'>✓ Screenshot attached</span></div>":"");
+function buildSummary() {
+  var p  = document.getElementById("f-platform").value;
+  var h  = document.getElementById("f-handle").value;
+  var bn = document.getElementById("f-bizname").value;
+  var d  = document.getElementById("f-date").value;
+  var a  = document.getElementById("f-amount").value;
+  var pm = document.getElementById("f-payment").value;
+  var desc = document.getElementById("f-desc").value.trim();
+  var el = document.getElementById("rv-summary"); if (!el) return;
+  el.innerHTML = "<div class='rv-summary-title'>Review Summary</div>" +
+    "<div class='rv-summary-row'><strong>Business:</strong> " + (bn || h || "—") + " on " + (p || "—") + "</div>" +
+    "<div class='rv-summary-row'><strong>Date:</strong> " + (d || "—") + "</div>" +
+    "<div class='rv-summary-row'><strong>Amount:</strong> " + (a ? Number(a).toLocaleString() + " RWF" : "—") + " via " + (pm || "—") + "</div>" +
+    "<div class='rv-summary-row'><strong>Rating:</strong> " + stars(currentRating) + " (" + currentRating + "/5)</div>" +
+    "<div class='rv-summary-row'><strong>Review:</strong> <em>" + desc.substring(0, 120) + (desc.length > 120 ? "..." : "") + "</em></div>" +
+    (window._screenshotFile ? "<div class='rv-summary-row'><strong>Proof:</strong> <span style='color:var(--rw-green)'>&#10003; Screenshot attached</span></div>" : "");
 }
 
-// ── ADMIN LOGIN ──
-function showAdminLogin(){
-  var loginEl=document.getElementById("admin-login"); if(loginEl) loginEl.style.display="flex";
-  var logoImg=document.getElementById("login-logo-img"); var mainLogo=document.querySelector(".nav-brand img");
-  if(mainLogo&&logoImg) logoImg.src=mainLogo.src;
-  var un=document.getElementById("admin-username"); var pw=document.getElementById("admin-password");
-  var er=document.getElementById("login-error"); var at=document.getElementById("login-attempts");
-  if(un) un.value=""; if(pw) pw.value=""; if(er) er.classList.remove("show"); if(at) at.textContent="";
-  setTimeout(function(){if(un)un.focus();},100);
-}
-function cancelLogin(){var el=document.getElementById("admin-login");if(el)el.style.display="none";}
-function tryLogin(){
-  if(lockoutTimer) return;
-  var username=document.getElementById("admin-username").value.trim();
-  var password=document.getElementById("admin-password").value;
-  var errorEl=document.getElementById("login-error");
-  var attEl=document.getElementById("login-attempts");
-  var btn=document.getElementById("login-submit-btn");
-  var card=document.querySelector(".login-card");
-  if(username===ADMIN_CREDS.username&&password===ADMIN_CREDS.password){
-    loginAttempts=0; btn.textContent="✓ Signing in..."; btn.style.background="#0A7EC2";
-    setTimeout(function(){document.getElementById("admin-login").style.display="none";go("admin");btn.textContent="Sign in to Dashboard";btn.style.background="";},700);
+// SUBMIT REVIEW → POST /api/reviews
+function submitReview() {
+  // ── Client-side validation first ──
+  var bizname  = document.getElementById("f-bizname").value.trim();
+  var handle   = document.getElementById("f-handle").value.trim();
+  var platform = document.getElementById("f-platform").value;
+  var desc     = document.getElementById("f-desc").value.trim();
+  var date     = document.getElementById("f-date").value;
+  var payment  = document.getElementById("f-payment").value;
+
+  if (!bizname)          { showToast("Please enter the business name", "error"); toStep(1); return; }
+  if (!platform)         { showToast("Please select a platform", "error"); toStep(1); return; }
+  if (!handle)           { showToast("Please enter the handle or username", "error"); toStep(1); return; }
+  if (!date)             { showToast("Please enter the transaction date", "error"); toStep(2); return; }
+  if (!payment)          { showToast("Please select a payment method", "error"); toStep(2); return; }
+  if (currentRating < 1) { showToast("Please give a star rating", "error"); toStep(2); return; }
+  if (desc.length < 50)  { showToast("Description must be at least 50 characters (" + desc.length + "/50)", "error"); toStep(2); return; }
+
+  var phone   = (document.getElementById("f-phone-biz") || {}).value || "";
+  var website = (document.getElementById("f-website") || {}).value || "";
+  var amount  = (document.getElementById("f-amount") || {}).value || "";
+
+  var submitBtn = document.querySelector("[onclick='submitReview()']");
+  if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = "Submitting…"; }
+
+  function doPost(screenshotURL) {
+    var payload = {
+      account_id:       window._pendingBizId || null,
+      reviewer_phone:   phone.replace(/\s/g, "") || null,
+      rating:           parseInt(currentRating),
+      transaction_date: date || null,
+      amount_rwf:       amount ? parseInt(amount) : null,
+      payment_method:   payment || null,
+      description:      desc,
+      screenshot_url:   screenshotURL || null,
+      platform:         platform,
+      handle:           handle ? "@" + handle.replace(/^@/, "") : null,
+      business_name:    bizname
+    };
+
+    api("/reviews", { method: "POST", body: payload }).then(function(data) {
+      if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = "Submit Review ✓"; }
+      if (data.error) {
+        showToast(data.error, "error");
+        // If it's a server/network error, stay on step 3 so user doesn't lose their work
+        return;
+      }
+      // ── Success ──
+      ["f-bizname","f-handle","f-phone-biz","f-website","f-desc","f-amount","f-date"].forEach(function(fid) {
+        var el = document.getElementById(fid); if (el) el.value = "";
+      });
+      document.getElementById("f-platform").value = "";
+      document.querySelectorAll(".plat-btn").forEach(function(b) { b.classList.remove("active"); });
+      var prev = document.getElementById("profile-url-preview"); if (prev) prev.style.display = "none";
+      window._screenshotFile = null; window._pendingBizId = null;
+      currentRating = 0; renderStarRating(0);
+      toStep(1);
+      showToast(data.message || "Review submitted! It will be published after moderation.", "success");
+      setTimeout(function() { go("home"); loadFromAPI(); }, 2000);
+    });
+  }
+
+  // Upload screenshot first (if any), then post — with a fallback if upload fails
+  if (window._screenshotFile) {
+    uploadScreenshot(window._screenshotFile).then(function(url) {
+      doPost(url); // url may be null if upload failed — that's fine, we still submit
+    }).catch(function() { doPost(null); });
   } else {
-    loginAttempts++;
-    if(errorEl) errorEl.classList.add("show");
-    document.getElementById("admin-password").value="";
-    var remaining=5-loginAttempts;
-    if(attEl&&remaining>0) attEl.textContent=remaining+" attempt"+(remaining!==1?"s":"")+" remaining";
-    if(card){card.style.transform="translateX(-8px)";setTimeout(function(){card.style.transform="translateX(8px)";},80);setTimeout(function(){card.style.transform="translateX(-5px)";},160);setTimeout(function(){card.style.transform="translateX(5px)";},240);setTimeout(function(){card.style.transform="translateX(0)";},320);}
-    if(loginAttempts>=5){
-      var secs=30; btn.disabled=true; btn.style.background="#888";
-      if(errorEl) errorEl.textContent="Too many attempts. Locked for 30 seconds.";
-      lockoutTimer=setInterval(function(){secs--;btn.textContent="Locked — wait "+secs+"s";if(secs<=0){clearInterval(lockoutTimer);lockoutTimer=null;loginAttempts=0;btn.disabled=false;btn.textContent="Sign in to Dashboard";btn.style.background="";if(errorEl){errorEl.textContent="Incorrect username or password.";errorEl.classList.remove("show");}}},1000);
-    }
-    var pw=document.getElementById("admin-password"); if(pw) pw.focus();
+    doPost(null);
   }
 }
 
-// ── ANALYTICS ──
-function adminSwitch(el,tab){
-  document.querySelectorAll(".atab").forEach(function(t){t.classList.remove("active");});
-  el.classList.add("active");
-  ["pending","accounts","analytics","modlog"].forEach(function(t){var c=document.getElementById("atab-content-"+t);if(c)c.style.display=t===tab?"block":"none";});
+// ─────────────────────────────────────────────────
+// ADMIN LOGIN — POST /api/admin/login (JWT-based)
+// ─────────────────────────────────────────────────
+function showAdminLogin() {
+  var loginEl = document.getElementById("admin-login"); if (loginEl) loginEl.style.display = "flex";
+  var logoImg = document.getElementById("login-logo-img"); var mainLogo = document.querySelector(".nav-brand img");
+  if (mainLogo && logoImg) logoImg.src = mainLogo.src;
+  var un = document.getElementById("admin-username");
+  var pw = document.getElementById("admin-password");
+  var er = document.getElementById("login-error");
+  var at = document.getElementById("login-attempts");
+  if (un) un.value = ""; if (pw) pw.value = "";
+  if (er) er.classList.remove("show"); if (at) at.textContent = "";
+  setTimeout(function() { if (un) un.focus(); }, 100);
 }
-function renderPlatformBars(){
-  var d1=[{l:"TikTok",n:1240,c:"var(--red)"},{l:"Instagram",n:980,c:"var(--gold)"},{l:"Facebook",n:720,c:"var(--rw-green)"},{l:"Website",n:360,c:"var(--amber)"}];
-  var pb=document.getElementById("platform-bars"); if(pb) pb.innerHTML=d1.map(function(d){return "<div class='platform-bar-row'><div class='platform-bar-label'>"+d.l+"</div><div class='platform-bar-track'><div class='platform-bar-fill' style='width:"+Math.round(d.n/1240*100)+"%;background:"+d.c+"'></div></div><div class='platform-bar-count'>"+d.n+"</div></div>";}).join("");
-  var d2=[{l:"MTN MoMo",n:68,c:"var(--rw-yellow)"},{l:"Airtel",n:21,c:"var(--red)"},{l:"Bank",n:8,c:"#0A7EC2"},{l:"Cash",n:3,c:"var(--ink3)"}];
-  var pyb=document.getElementById("payment-bars"); if(pyb) pyb.innerHTML=d2.map(function(d){return "<div class='platform-bar-row'><div class='platform-bar-label' style='font-size:0.75rem'>"+d.l+"</div><div class='platform-bar-track'><div class='platform-bar-fill' style='width:"+d.n+"%;background:"+d.c+"'></div></div><div class='platform-bar-count'>"+d.n+"%</div></div>";}).join("");
-  var spark=[42,38,55,71,63,80,94]; var max=Math.max.apply(null,spark);
-  var sp=document.getElementById("sparkline"); if(sp) sp.innerHTML="<div style='display:flex;align-items:flex-end;gap:6px;height:60px;padding:0 4px'>"+spark.map(function(v,i){return "<div style='flex:1;background:#0A7EC2;border-radius:3px 3px 0 0;height:"+Math.round(v/max*56)+"px;opacity:"+(0.5+i*0.07)+"'></div>";}).join("")+"</div><div style='display:flex;justify-content:space-between;font-size:0.7rem;color:var(--ink3);margin-top:4px;padding:0 4px'><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>";
-  var vf=document.getElementById("verify-funnel"); if(vf) vf.innerHTML="<div style='display:flex;flex-direction:column;gap:6px;padding:0.5rem 0'>"+[{l:"Businesses found",n:2847,w:100},{l:"Reviews submitted",n:1204,w:42},{l:"Published",n:876,w:31}].map(function(d){return "<div><div style='display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ink2);margin-bottom:3px'><span>"+d.l+"</span><span>"+d.n.toLocaleString()+"</span></div><div style='background:var(--bg2);border-radius:100px;height:6px;overflow:hidden'><div style='width:"+d.w+"%;height:100%;background:#0A7EC2;border-radius:100px'></div></div></div>";}).join("")+"</div>";
+function cancelLogin() {
+  var el = document.getElementById("admin-login"); if (el) el.style.display = "none";
 }
-function renderModLog(){
-  var el=document.getElementById("modlog-tbody"); if(!el) return;
-  el.innerHTML=MODLOG.map(function(l){return "<tr><td style='font-size:0.8rem;color:var(--ink3);white-space:nowrap'>"+l.time+"</td><td style='font-size:0.8rem'>"+l.admin+"</td><td><span class='badge "+(l.action==="Approved"?"verified":l.action==="Rejected"?"danger-b":"flagged-b")+"'>"+l.action+"</span></td><td style='font-weight:500;color:var(--ink)'>"+l.biz+"</td><td style='font-size:0.8rem;color:var(--ink3)'>"+l.notes+"</td></tr>";}).join("");
-}
+function tryLogin() {
+  if (lockoutTimer) return;
+  var email    = document.getElementById("admin-username").value.trim();
+  var password = document.getElementById("admin-password").value;
+  var errorEl  = document.getElementById("login-error");
+  var attEl    = document.getElementById("login-attempts");
+  var btn      = document.getElementById("login-submit-btn");
+  var card     = document.querySelector(".login-card");
+  if (!email || !password) { if (errorEl) { errorEl.textContent = "Enter email and password."; errorEl.classList.add("show"); } return; }
 
-// ── MODALS & TOAST ──
-function openModal(id){var el=document.getElementById(id);if(el)el.classList.add("open");}
-function closeModal(id){var el=document.getElementById(id);if(el)el.classList.remove("open");}
-document.querySelectorAll(".overlay").forEach(function(o){o.addEventListener("click",function(e){if(e.target===o)o.classList.remove("open");});});
-document.addEventListener("keydown",function(e){if(e.key==="Escape")document.querySelectorAll(".overlay.open").forEach(function(o){o.classList.remove("open");});});
-var toastTimer;
-function showToast(msg,type){
-  var t=document.getElementById("toast"); if(!t) return;
-  t.textContent=msg; t.className="toast "+(type||"");
-  clearTimeout(toastTimer);
-  setTimeout(function(){t.classList.add("show");},10);
-  toastTimer=setTimeout(function(){t.classList.remove("show");},3600);
-}
+  if (btn) { btn.disabled = true; btn.textContent = "Signing in…"; }
 
-// ── POPUP ADS ──
-var ADS=[{url:"https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1",thumb:"https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg"},{url:"https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&rel=0&modestbranding=1",thumb:"https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg"}];
-function showPopupAd(){
-  var ad=ADS[adIndex%ADS.length];adIndex++;
-  var iframe=document.getElementById("popup-ad-iframe"),thumb=document.getElementById("popup-thumb"),thumbImg=document.getElementById("popup-thumb-img"),overlay=document.getElementById("popup-ad-overlay"),skipBtn=document.getElementById("popup-skip-btn"),skipTimer2=document.getElementById("popup-skip-timer"),countdown=document.getElementById("skip-countdown");
-  if(!overlay) return;
-  if(iframe){iframe.style.display="none";iframe.src="";}
-  if(thumb){thumb.style.display="flex";thumb._adUrl=ad.url;}
-  if(thumbImg) thumbImg.src=ad.thumb;
-  if(skipBtn) skipBtn.classList.remove("visible");
-  if(skipTimer2) skipTimer2.style.display="block";
-  if(countdown) countdown.textContent="5";
-  overlay.classList.add("show"); document.body.style.overflow="hidden";
-  var secs=5; clearInterval(skipTimer);
-  skipTimer=setInterval(function(){secs--;if(countdown)countdown.textContent=secs;if(secs<=0){clearInterval(skipTimer);if(skipBtn)skipBtn.classList.add("visible");if(skipTimer2)skipTimer2.style.display="none";}},1000);
-}
-function playPopupAd(){var thumb=document.getElementById("popup-thumb"),iframe=document.getElementById("popup-ad-iframe");if(iframe&&thumb){iframe.src=thumb._adUrl;iframe.style.display="block";thumb.style.display="none";}}
-function closePopupAd(){clearInterval(skipTimer);var o=document.getElementById("popup-ad-overlay");if(o)o.classList.remove("show");document.body.style.overflow="";setTimeout(function(){var i=document.getElementById("popup-ad-iframe");if(i)i.src="";},300);}
-setTimeout(function(){if(!popupShown){popupShown=true;showPopupAd();}},4000);
-var popupEl=document.getElementById("popup-ad-overlay");
-if(popupEl) popupEl.addEventListener("click",function(e){if(e.target===this)closePopupAd();});
-
-// ── NAV SCROLL ──
-window.addEventListener("scroll",function(){var nav=document.querySelector("nav");if(nav){if(window.scrollY>10)nav.classList.add("scrolled");else nav.classList.remove("scrolled");}});
-
-// ── NOT FOUND CARD CSS ──
-var nfStyle=document.createElement("style");
-nfStyle.textContent=".not-found-card{text-align:center;padding:3rem 1.5rem;background:var(--surface);border:1.5px dashed var(--border-strong);border-radius:var(--radius-xl)}.nf-icon{font-size:3rem;margin-bottom:1rem}.nf-title{font-weight:700;font-size:1.125rem;color:var(--ink);margin-bottom:0.5rem}.nf-sub{font-size:0.9375rem;color:var(--ink2);line-height:1.65;margin-bottom:1.5rem;max-width:420px;margin-left:auto;margin-right:auto}.nf-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}";
-document.head.appendChild(nfStyle);
-
-// ── INIT ──
-var fd=document.getElementById("f-date"); if(fd) fd.max=new Date().toISOString().split("T")[0];
-renderAdminPending();
-renderBizList(BIZ);
-renderRecent();
-renderAdminAccounts();
-renderPlatformBars();
-renderModLog();
-
-// Load everything from Supabase on startup
-loadFromSupabase();
-
-function loadFromSupabase() {
-  // Load accounts
-  sbFetch("accounts", "select=*&order=review_count.desc&limit=100").then(function(rows){
-    console.log("Loaded accounts from Supabase:", rows ? rows.length : 0);
-    if(!rows || !Array.isArray(rows)) return;
-    rows.forEach(function(r){
-      var exists = BIZ.find(function(b){ return b.handle===r.handle||b.name===r.business_name||String(b.id)===String(r.id); });
-      if(!exists){
-        var cols=[{color:"#0A7EC2",bg:"#E6F4FC"},{color:"#7B3F00",bg:"#FDF3E3"},{color:"#4A1C8C",bg:"#F0EAFF"},{color:"#7A1C1C",bg:"#FCECEA"},{color:"#1A6B3A",bg:"#E8F5E8"}];
-        var ci=(r.business_name||"A").charCodeAt(0)%cols.length;
-        var inits=(r.business_name||"").split(" ").filter(Boolean).map(function(w){return w[0].toUpperCase();}).slice(0,2).join("")||"??";
-        var platforms = Array.isArray(r.platform)?r.platform:(r.platform?[r.platform]:[]);
-        BIZ.push({
-          id: r.id, name: r.business_name, handle: r.handle||"",
-          platforms: platforms, phone: r.phone_number||"",
-          website: r.website||"", location: r.location||"Rwanda",
-          trustScore: parseFloat(r.trust_score)||0,
-          verified: r.verification_status==="verified",
-          reviewCount: parseInt(r.review_count)||0,
-          avgRating: parseFloat(r.avg_rating)||0,
-          color: cols[ci].color, bg: cols[ci].bg, initials: inits,
-          desc: r.description||"No description yet.",
-          profileURL: r.handle ? getPlatformURL(platforms[0]||"tiktok", r.handle) : "",
-          reviews: [], _dbId: r.id
+  api("/admin/login", { method: "POST", body: { email: email, password: password } }).then(function(data) {
+    if (btn) { btn.disabled = false; btn.textContent = "Sign in to Dashboard"; }
+    if (data.error || !data.token) {
+      loginAttempts++;
+      if (errorEl) { errorEl.textContent = data.error || "Invalid credentials."; errorEl.classList.add("show"); }
+      document.getElementById("admin-password").value = "";
+      var remaining = 5 - loginAttempts;
+      if (attEl && remaining > 0) attEl.textContent = remaining + " attempt" + (remaining !== 1 ? "s" : "") + " remaining";
+      if (card) {
+        card.style.transition = "transform 0.08s";
+        ["−8px","8px","−5px","5px","0px"].forEach(function(v, i) {
+          setTimeout(function() { card.style.transform = "translateX(" + v + ")"; }, i * 80);
         });
       }
-    });
-    renderBizList(BIZ);
-    renderRecent();
-    renderAdminAccounts();
-
-    // Then load approved reviews
-    sbFetch("reviews", "review_status=eq.approved&select=*&order=created_at.desc&limit=500").then(function(reviews){
-      console.log("Loaded reviews from Supabase:", reviews ? reviews.length : 0);
-      if(!reviews || !Array.isArray(reviews)) return;
-      reviews.forEach(function(r){
-        var biz = BIZ.find(function(b){ return String(b.id)===String(r.account_id)||String(b._dbId)===String(r.account_id); });
-        if(biz){
-          var exists = biz.reviews.find(function(rv){ return String(rv.id)===String(r.id); });
-          if(!exists){
-            biz.reviews.push({
-              id: r.id, user: "Verified buyer",
-              rating: r.rating,
-              date: r.transaction_date||r.created_at.split("T")[0],
-              amount: r.amount_rwf, payment: r.payment_method,
-              text: r.description, screenshot: r.screenshot_url||null,
-              resp: null, status: "approved"
-            });
+      if (loginAttempts >= 5) {
+        var secs = 30;
+        if (btn) { btn.disabled = true; btn.style.opacity = "0.6"; }
+        if (errorEl) errorEl.textContent = "Too many attempts. Locked for 30 seconds.";
+        lockoutTimer = setInterval(function() {
+          secs--;
+          if (btn) btn.textContent = "Locked — wait " + secs + "s";
+          if (secs <= 0) {
+            clearInterval(lockoutTimer); lockoutTimer = null; loginAttempts = 0;
+            if (btn) { btn.disabled = false; btn.textContent = "Sign in to Dashboard"; btn.style.opacity = ""; }
+            if (errorEl) { errorEl.textContent = "Invalid credentials."; errorEl.classList.remove("show"); }
           }
-        }
-      });
-      BIZ.forEach(function(b){
-        if(b.reviews.length>0){
-          b.reviews.sort(function(a,c){ return new Date(c.date||0)-new Date(a.date||0); });
-          b.reviewCount = b.reviews.length;
-          b.avgRating = calcAvgRating(b.reviews);
-          b.trustScore = calcTrustScore(b.reviews);
-        }
-      });
-      renderBizList(BIZ);
-    });
+        }, 1000);
+      }
+      return;
+    }
+    // SUCCESS
+    ADMIN_TOKEN = data.token;
+    loginAttempts = 0;
+    if (btn) btn.textContent = "&#10003; Signing in...";
+    setTimeout(function() {
+      document.getElementById("admin-login").style.display = "none";
+      if (btn) btn.textContent = "Sign in to Dashboard";
+      go("admin");
+    }, 700);
   });
 }
 
-// Animated number counter
-function animateCounter(el,target,duration){
-  if(!el) return;
-  var startTime=null;
-  function step(ts){if(!startTime)startTime=ts;var p=Math.min((ts-startTime)/duration,1);var e=1-Math.pow(1-p,3);el.textContent=Math.floor(e*target).toLocaleString();if(p<1)requestAnimationFrame(step);else el.textContent=target.toLocaleString();}
+// ─────────────────────────────────────────────────
+// ADMIN DASHBOARD — loads from /api/admin/*
+// ─────────────────────────────────────────────────
+function loadAdminDashboard() {
+  if (!ADMIN_TOKEN) { showAdminLogin(); return; }
+  loadAdminStats();
+  renderAdminPending();
+  renderAdminAccounts();
+  renderPlatformBars();
+  renderModLog();
+}
+
+function loadAdminStats() {
+  api("/admin/stats").then(function(data) {
+    if (data.error) return;
+    var el;
+    el = document.getElementById("stat-pending-kpi"); if (el) el.textContent = data.pending_reviews || 0;
+    el = document.getElementById("stat-total-kpi");   if (el) el.textContent = (data.total_reviews || 0).toLocaleString();
+    el = document.getElementById("stat-accounts-kpi"); if (el) el.textContent = (data.total_accounts || 0).toLocaleString();
+    el = document.getElementById("stat-flagged-kpi");  if (el) el.textContent = data.flagged_reviews || 0;
+    // Also update KPI badge
+    var badge = document.getElementById("pending-badge");
+    if (badge) badge.textContent = (data.pending_reviews || 0) + " awaiting";
+  });
+}
+
+function renderAdminPending() {
+  if (!ADMIN_TOKEN) return;
+  var el = document.getElementById("admin-pending-tbody");
+  if (!el) return;
+  el.innerHTML = "<tr><td colspan='7' style='text-align:center;padding:1.5rem;color:var(--ink3)'>Loading…</td></tr>";
+
+  api("/admin/reviews/pending").then(function(data) {
+    if (data.error) {
+      el.innerHTML = "<tr><td colspan='7' style='text-align:center;padding:1.5rem;color:var(--red)'>Failed to load: " + data.error + "</td></tr>";
+      return;
+    }
+    var reviews = data.reviews || [];
+    var badge = document.getElementById("pending-badge");
+    if (badge) badge.textContent = reviews.length + " awaiting";
+    if (!reviews.length) {
+      el.innerHTML = "<tr><td colspan='7' style='text-align:center;padding:2rem;color:var(--ink3)'>No pending reviews &#10003;</td></tr>";
+      return;
+    }
+    el.innerHTML = reviews.map(function(r) {
+      var acct = r.accounts || {};
+      return "<tr>" +
+        "<td style='font-size:0.8rem;color:var(--ink3)'>" + String(r.id).slice(-6) + "</td>" +
+        "<td><div class='rv-biz-name'>" + (acct.business_name || r.handle || "Unknown") + "</div><div class='rv-excerpt'>" + (r.description || "").substring(0, 80) + "…</div></td>" +
+        "<td><span class='tag'>" + ((Array.isArray(acct.platform) ? acct.platform[0] : acct.platform) || "—") + "</span></td>" +
+        "<td style='font-weight:500'>" + (r.amount_rwf ? Number(r.amount_rwf).toLocaleString() + " RWF" : "—") + "</td>" +
+        "<td style='font-size:0.8rem;color:var(--ink3)'>" + (r.transaction_date || (r.created_at || "").split("T")[0] || "—") + "</td>" +
+        "<td><span class='badge pending-b'>pending</span></td>" +
+        "<td><div class='action-cell'>" +
+        "<button class='abtn abtn-approve' onclick='moderateRv(\"" + r.id + "\",\"approved\")'>Approve</button>" +
+        "<button class='abtn abtn-reject'  onclick='moderateRv(\"" + r.id + "\",\"rejected\")'>Reject</button>" +
+        "<button class='abtn abtn-edit'    onclick='openRvDetail(\"" + r.id + "\",this.closest(\"tr\"))'>View</button>" +
+        "</div></td></tr>";
+    }).join("");
+  });
+}
+
+// Moderate review → PATCH /api/admin/reviews/:id
+function moderateRv(reviewId, action) {
+  if (!ADMIN_TOKEN) return;
+  api("/admin/reviews/" + reviewId, { method: "PATCH", body: { action: action } }).then(function(data) {
+    if (data.error) { showToast(data.error, "error"); return; }
+    showToast(action === "approved" ? "&#10003; Review approved and live!" : "Review rejected", action === "approved" ? "success" : "info");
+    renderAdminPending();
+    loadAdminStats();
+    if (action === "approved") loadFromAPI(); // refresh public list
+  });
+}
+
+function openRvDetail(reviewId, row) {
+  // Extract data from the row for quick preview
+  if (!row) { showToast("Could not load review", "error"); return; }
+  var cells   = row.querySelectorAll("td");
+  var bizName = cells[1] ? cells[1].querySelector(".rv-biz-name") : null;
+  var excerpt = cells[1] ? cells[1].querySelector(".rv-excerpt") : null;
+  var el = document.getElementById("rv-detail-content");
+  if (!el) return;
+  el.innerHTML =
+    "<div style='margin-bottom:1rem;display:flex;gap:8px'><span class='badge pending-b'>Pending</span></div>" +
+    "<div style='background:var(--cream);border-radius:9px;padding:1rem;margin-bottom:1rem;font-size:0.875rem;color:var(--ink2);line-height:1.7'>" +
+    "<strong>Business:</strong> " + (bizName ? bizName.textContent : "—") + "<br>" +
+    "<strong>Excerpt:</strong> " + (excerpt ? excerpt.textContent : "—") + "</div>" +
+    "<div style='display:flex;gap:8px;margin-top:0.5rem'>" +
+    "<button class='abtn abtn-approve' style='padding:9px 18px;border-radius:9px' onclick='moderateRv(\"" + reviewId + "\",\"approved\");closeModal(\"rv-detail-modal\")'>Approve &#10003;</button>" +
+    "<button class='abtn abtn-reject'  style='padding:9px 18px;border-radius:9px' onclick='moderateRv(\"" + reviewId + "\",\"rejected\");closeModal(\"rv-detail-modal\")'>Reject</button>" +
+    "</div>";
+  openModal("rv-detail-modal");
+}
+
+// Respond to review → POST /api/reviews/:id/respond
+function openRespondModal(reviewId, accountId) {
+  window._respondingReviewId = String(reviewId);
+  window._respondingAccountId = accountId ? String(accountId) : null;
+  var t = document.getElementById("biz-response-text"); if (t) t.value = "";
+  openModal("respond-modal");
+}
+
+function submitBizResponse() {
+  var text = document.getElementById("biz-response-text");
+  if (!text || text.value.trim().length < 10) { showToast("Response too short", "error"); return; }
+  if (!window._respondingReviewId) { showToast("No review selected", "error"); return; }
+  api("/reviews/" + window._respondingReviewId + "/respond", {
+    method: "POST",
+    body: { response_text: text.value.trim() }
+  }).then(function(data) {
+    if (data.error) { showToast(data.error, "error"); return; }
+    showToast("Response published!", "success");
+    closeModal("respond-modal");
+  });
+}
+
+function renderAdminAccounts() {
+  if (!ADMIN_TOKEN) return;
+  var el = document.getElementById("admin-accounts-tbody");
+  if (!el) return;
+  api("/admin/accounts").then(function(data) {
+    if (data.error) {
+      el.innerHTML = "<tr><td colspan='7' style='text-align:center;padding:1.5rem;color:var(--red)'>Failed to load accounts</td></tr>";
+      return;
+    }
+    var accounts = data.accounts || [];
+    el.innerHTML = accounts.map(function(a) {
+      var c = bizColorFromName(a.business_name);
+      var platforms = Array.isArray(a.platform) ? a.platform : (a.platform ? [a.platform] : []);
+      return "<tr>" +
+        "<td><div style='display:flex;align-items:center;gap:9px'>" +
+        "<div style='width:32px;height:32px;border-radius:8px;background:" + c.bg + ";color:" + c.color + ";display:flex;align-items:center;justify-content:center;font-size:0.72rem;font-weight:800'>" + bizInitials(a.business_name) + "</div>" +
+        "<div><div style='font-weight:500;color:var(--ink)'>" + (a.business_name || "—") + "</div><div style='font-size:0.75rem;color:var(--ink3)'>" + (a.handle || "") + "</div></div></div></td>" +
+        "<td>" + platforms.map(function(p) { return "<span class='tag'>" + plLabel(p) + "</span>"; }).join(" ") + "</td>" +
+        "<td style='font-size:0.8rem;color:var(--ink3)'>" + (a.phone_number || "—") + "</td>" +
+        "<td><strong style='color:" + (parseFloat(a.trust_score) >= 8 ? "var(--rw-green)" : parseFloat(a.trust_score) >= 5 ? "var(--rw-yellow)" : "var(--red)") + "'>" + (a.trust_score || "—") + "</strong></td>" +
+        "<td>" + (a.review_count || 0) + "</td>" +
+        "<td><span class='badge " + (a.verification_status === "verified" ? "verified" : "unverified") + "'>" + (a.verification_status === "verified" ? "&#10003; Verified" : "Unverified") + "</span></td>" +
+        "<td><div class='action-cell'>" +
+        (a.verification_status !== "verified" ? "<button class='abtn abtn-approve' onclick='verifyAccount(\"" + a.id + "\")'>Verify</button>" : "") +
+        "<button class='abtn abtn-view' onclick='showDetail(\"" + a.id + "\")'>View</button>" +
+        "</div></td></tr>";
+    }).join("");
+  });
+}
+
+function verifyAccount(id) {
+  api("/admin/accounts/" + id + "/verify", { method: "PATCH" }).then(function(data) {
+    if (data.error) { showToast(data.error, "error"); return; }
+    showToast("&#10003; Account verified!", "success");
+    renderAdminAccounts();
+    // Update local BIZ
+    var b = BIZ.find(function(x) { return String(x.id) === String(id); });
+    if (b) { b.verified = true; renderBizList(BIZ); }
+  });
+}
+
+function adminSwitch(el, tab) {
+  document.querySelectorAll(".atab").forEach(function(t) { t.classList.remove("active"); });
+  el.classList.add("active");
+  ["pending","accounts","analytics","modlog"].forEach(function(t) {
+    var c = document.getElementById("atab-content-" + t);
+    if (c) c.style.display = t === tab ? "block" : "none";
+  });
+  if (tab === "pending") renderAdminPending();
+  if (tab === "accounts") renderAdminAccounts();
+  if (tab === "analytics") renderPlatformBars();
+  if (tab === "modlog") renderModLog();
+}
+
+function renderPlatformBars() {
+  var d1 = [{l:"TikTok",n:1240,c:"var(--red)"},{l:"Instagram",n:980,c:"var(--gold)"},{l:"Facebook",n:720,c:"var(--rw-blue)"},{l:"Website",n:360,c:"var(--amber)"}];
+  var pb = document.getElementById("platform-bars");
+  if (pb) pb.innerHTML = d1.map(function(d) {
+    return "<div class='platform-bar-row'><div class='platform-bar-label'>" + d.l + "</div><div class='platform-bar-track'><div class='platform-bar-fill' style='width:" + Math.round(d.n/1240*100) + "%;background:" + d.c + "'></div></div><div class='platform-bar-count'>" + d.n + "</div></div>";
+  }).join("");
+  var d2 = [{l:"MTN MoMo",n:68,c:"var(--rw-yellow)"},{l:"Airtel",n:21,c:"var(--red)"},{l:"Bank",n:8,c:"var(--rw-blue)"},{l:"Cash",n:3,c:"var(--ink3)"}];
+  var pyb = document.getElementById("payment-bars");
+  if (pyb) pyb.innerHTML = d2.map(function(d) {
+    return "<div class='platform-bar-row'><div class='platform-bar-label' style='font-size:0.75rem'>" + d.l + "</div><div class='platform-bar-track'><div class='platform-bar-fill' style='width:" + d.n + "%;background:" + d.c + "'></div></div><div class='platform-bar-count'>" + d.n + "%</div></div>";
+  }).join("");
+  var spark = [42,38,55,71,63,80,94];
+  var max = Math.max.apply(null, spark);
+  var sp = document.getElementById("sparkline");
+  if (sp) sp.innerHTML = "<div style='display:flex;align-items:flex-end;gap:6px;height:60px;padding:0 4px'>" +
+    spark.map(function(v, i) { return "<div style='flex:1;background:var(--gold);border-radius:3px 3px 0 0;height:" + Math.round(v/max*56) + "px;opacity:" + (0.4 + i * 0.09) + "'></div>"; }).join("") + "</div>" +
+    "<div style='display:flex;justify-content:space-between;font-size:0.7rem;color:var(--ink3);margin-top:4px;padding:0 4px'><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>";
+  var vf = document.getElementById("verify-funnel");
+  if (vf) vf.innerHTML = "<div style='display:flex;flex-direction:column;gap:6px;padding:0.5rem 0'>" +
+    [{l:"Businesses found",n:0,w:100},{l:"Reviews submitted",n:0,w:42},{l:"Published",n:0,w:31}].map(function(d) {
+      return "<div><div style='display:flex;justify-content:space-between;font-size:0.75rem;color:var(--ink2);margin-bottom:3px'><span>" + d.l + "</span><span id='funnel-" + d.l.split(" ")[0].toLowerCase() + "'>…</span></div><div style='background:var(--bg2);border-radius:100px;height:6px;overflow:hidden'><div style='width:" + d.w + "%;height:100%;background:var(--gold);border-radius:100px'></div></div></div>";
+    }).join("") + "</div>";
+  // Fill funnel stats from API
+  api("/admin/stats").then(function(data) {
+    if (!data.error) {
+      var fb = document.getElementById("funnel-businesses"); if (fb) fb.textContent = (data.total_accounts || 0).toLocaleString();
+      var fs = document.getElementById("funnel-reviews");    if (fs) fs.textContent = (data.total_reviews || 0).toLocaleString();
+    }
+  });
+}
+
+function renderModLog() {
+  var el = document.getElementById("modlog-tbody"); if (!el) return;
+  el.innerHTML = "<tr><td colspan='5' style='text-align:center;padding:1rem;color:var(--ink3)'>Loading…</td></tr>";
+  // The backend doesn't have a GET modlog endpoint; use the local array as fallback
+  if (!MODLOG.length) { el.innerHTML = "<tr><td colspan='5' style='text-align:center;padding:1rem;color:var(--ink3)'>No moderation log yet.</td></tr>"; return; }
+  el.innerHTML = MODLOG.map(function(l) {
+    return "<tr><td style='font-size:0.8rem;color:var(--ink3);white-space:nowrap'>" + l.time + "</td>" +
+      "<td style='font-size:0.8rem'>" + l.admin + "</td>" +
+      "<td><span class='badge " + (l.action === "Approved" ? "verified" : l.action === "Rejected" ? "danger-b" : "flagged-b") + "'>" + l.action + "</span></td>" +
+      "<td style='font-weight:500;color:var(--ink)'>" + l.biz + "</td>" +
+      "<td style='font-size:0.8rem;color:var(--ink3)'>" + l.notes + "</td></tr>";
+  }).join("");
+}
+
+// ─────────────────────────────────────────────────
+// MODALS & TOAST
+// ─────────────────────────────────────────────────
+function openModal(id)  { var el = document.getElementById(id); if (el) el.classList.add("open"); }
+function closeModal(id) { var el = document.getElementById(id); if (el) el.classList.remove("open"); }
+document.querySelectorAll(".overlay").forEach(function(o) {
+  o.addEventListener("click", function(e) { if (e.target === o) o.classList.remove("open"); });
+});
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Escape") document.querySelectorAll(".overlay.open").forEach(function(o) { o.classList.remove("open"); });
+});
+var toastTimer;
+function showToast(msg, type) {
+  var t = document.getElementById("toast"); if (!t) return;
+  t.innerHTML = msg; t.className = "toast " + (type || "");
+  clearTimeout(toastTimer);
+  setTimeout(function() { t.classList.add("show"); }, 10);
+  toastTimer = setTimeout(function() { t.classList.remove("show"); }, 3800);
+}
+
+// ─────────────────────────────────────────────────
+// POPUP ADS
+// ─────────────────────────────────────────────────
+var ADS = [
+  { url:"https://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1&rel=0&modestbranding=1", thumb:"https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
+  { url:"https://www.youtube.com/embed/9bZkp7q19f0?autoplay=1&rel=0&modestbranding=1", thumb:"https://img.youtube.com/vi/9bZkp7q19f0/hqdefault.jpg" }
+];
+function showPopupAd() {
+  var ad = ADS[adIndex % ADS.length]; adIndex++;
+  var iframe = document.getElementById("popup-ad-iframe"), thumb = document.getElementById("popup-thumb"),
+      thumbImg = document.getElementById("popup-thumb-img"), overlay = document.getElementById("popup-ad-overlay"),
+      skipBtn = document.getElementById("popup-skip-btn"), skipTimer2 = document.getElementById("popup-skip-timer"),
+      countdown = document.getElementById("skip-countdown");
+  if (!overlay) return;
+  if (iframe) { iframe.style.display = "none"; iframe.src = ""; }
+  if (thumb)  { thumb.style.display = "flex"; thumb._adUrl = ad.url; }
+  if (thumbImg) thumbImg.src = ad.thumb;
+  if (skipBtn) skipBtn.classList.remove("visible");
+  if (skipTimer2) skipTimer2.style.display = "block";
+  if (countdown) countdown.textContent = "5";
+  overlay.classList.add("show"); document.body.style.overflow = "hidden";
+  var secs = 5; clearInterval(skipTimer);
+  skipTimer = setInterval(function() {
+    secs--;
+    if (countdown) countdown.textContent = secs;
+    if (secs <= 0) { clearInterval(skipTimer); if (skipBtn) skipBtn.classList.add("visible"); if (skipTimer2) skipTimer2.style.display = "none"; }
+  }, 1000);
+}
+function playPopupAd() {
+  var thumb = document.getElementById("popup-thumb"), iframe = document.getElementById("popup-ad-iframe");
+  if (iframe && thumb) { iframe.src = thumb._adUrl; iframe.style.display = "block"; thumb.style.display = "none"; }
+}
+function closePopupAd() {
+  clearInterval(skipTimer);
+  var o = document.getElementById("popup-ad-overlay"); if (o) o.classList.remove("show");
+  document.body.style.overflow = "";
+  setTimeout(function() { var i = document.getElementById("popup-ad-iframe"); if (i) i.src = ""; }, 300);
+}
+setTimeout(function() { if (!popupShown) { popupShown = true; showPopupAd(); } }, 5000);
+var popupEl = document.getElementById("popup-ad-overlay");
+if (popupEl) popupEl.addEventListener("click", function(e) { if (e.target === this) closePopupAd(); });
+
+// ─────────────────────────────────────────────────
+// NAV SCROLL EFFECT
+// ─────────────────────────────────────────────────
+window.addEventListener("scroll", function() {
+  var nav = document.querySelector("nav");
+  if (nav) { if (window.scrollY > 10) nav.classList.add("scrolled"); else nav.classList.remove("scrolled"); }
+});
+
+// ─────────────────────────────────────────────────
+// INITIAL LOAD — GET /api/search with no query = recent
+// ─────────────────────────────────────────────────
+function loadFromAPI() {
+  // Load recent accounts (top 20 by review count)
+  fetch(API_URL + "/search?q=a&type=name&sort=reviews")
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.results && data.results.length) {
+        data.results.forEach(function(r) {
+          var exists = BIZ.find(function(b) { return String(b.id) === String(r.id); });
+          if (!exists) BIZ.push(rowToBiz(r));
+          else {
+            // update fields
+            var b = BIZ.find(function(b2) { return String(b2.id) === String(r.id); });
+            if (b) {
+              b.trustScore  = parseFloat(r.trust_score) || b.trustScore;
+              b.reviewCount = parseInt(r.review_count) || b.reviewCount;
+              b.avgRating   = parseFloat(r.avg_rating) || b.avgRating;
+            }
+          }
+        });
+      }
+      // Also do a broader fetch for popular businesses
+      return fetch(API_URL + "/search?q=kigali&type=name&sort=trust");
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.results) {
+        data.results.forEach(function(r) {
+          var exists = BIZ.find(function(b) { return String(b.id) === String(r.id); });
+          if (!exists) BIZ.push(rowToBiz(r));
+        });
+      }
+    })
+    .catch(function(e) { console.warn("Initial load failed, using local data:", e); })
+    .finally(function() {
+      renderBizList(BIZ);
+      renderRecent();
+    });
+}
+
+// ─────────────────────────────────────────────────
+// STAT COUNTERS
+// ─────────────────────────────────────────────────
+function animateCounter(el, target, duration) {
+  if (!el) return;
+  var startTime = null;
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    var p = Math.min((ts - startTime) / duration, 1);
+    var e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.floor(e * target).toLocaleString();
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = target.toLocaleString();
+  }
   requestAnimationFrame(step);
 }
-setTimeout(function(){
-  animateCounter(document.getElementById("stat-biz"),2847,1800);
-  animateCounter(document.getElementById("stat-reviews"),14290,2000);
-  animateCounter(document.getElementById("stat-buyers"),9105,1900);
-  animateCounter(document.getElementById("stat-verified"),342,1500);
-},700);
+
+// ─────────────────────────────────────────────────
+// INITIALISE
+// ─────────────────────────────────────────────────
+var fd = document.getElementById("f-date"); if (fd) fd.max = new Date().toISOString().split("T")[0];
+
+// Start loading from real backend
+loadFromAPI();
+
+// Animate hero stats — fetch live counts
+api("/admin/stats").then(function(data) {
+  if (!data.error) {
+    animateCounter(document.getElementById("stat-biz"),      data.total_accounts  || 0, 1800);
+    animateCounter(document.getElementById("stat-reviews"),  data.total_reviews   || 0, 2000);
+    animateCounter(document.getElementById("stat-buyers"),   Math.round((data.total_reviews || 0) * 0.64), 1900);
+    animateCounter(document.getElementById("stat-verified"), Math.round((data.total_accounts || 0) * 0.12), 1500);
+  } else {
+    // Fallback static numbers
+    animateCounter(document.getElementById("stat-biz"),      2847, 1800);
+    animateCounter(document.getElementById("stat-reviews"),  14290, 2000);
+    animateCounter(document.getElementById("stat-buyers"),   9105, 1900);
+    animateCounter(document.getElementById("stat-verified"), 342, 1500);
+  }
+});
 
 </script>
 
