@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Trustly Rwanda — Shaka Ibyifuzo / Find Trusted Businesses</title>
+<title>Trustly Rwanda — Review and Find Trusted Businesses</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&display=swap" rel="stylesheet">
@@ -1514,8 +1514,8 @@ select { -webkit-appearance: menulist; }
       <div class="login-error" id="login-error">Incorrect username or password. Please try again.</div>
 
       <div class="login-field">
-        <label for="admin-username">Admin Email</label>
-        <input type="email" id="admin-username" placeholder="admin@trustly.rw" autocomplete="off" onkeydown="if(event.key==='Enter')tryLogin()">
+        <label for="admin-username">Username</label>
+        <input type="text" id="admin-username" placeholder="Enter admin username" autocomplete="off" onkeydown="if(event.key==='Enter')tryLogin()">
       </div>
       <div class="login-field">
         <label for="admin-password">Password</label>
@@ -2372,34 +2372,25 @@ var ADMIN_TOKEN  = null;        // JWT stored in memory (not localStorage)
 // ─────────────────────────────────────────────────
 // API LAYER — all calls go through backend
 // ─────────────────────────────────────────────────
-function api(endpoint, options) {
+function api(endpoint, options, _retry) {
   options = options || {};
   var headers = { "Content-Type": "application/json" };
   if (ADMIN_TOKEN) headers["Authorization"] = "Bearer " + ADMIN_TOKEN;
 
-  // 15-second timeout
-  var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
-  var timeoutId  = controller ? setTimeout(function() { controller.abort(); }, 15000) : null;
-
   return fetch(API_URL + endpoint, {
     method:  options.method || "GET",
     headers: headers,
-    body:    options.body ? JSON.stringify(options.body) : undefined,
-    signal:  controller ? controller.signal : undefined
+    body:    options.body ? JSON.stringify(options.body) : undefined
   })
   .then(function(r) {
-    if (timeoutId) clearTimeout(timeoutId);
     var status = r.status;
-    // Try JSON first; fall back to text so we always get something useful
     return r.text().then(function(text) {
       var data;
       try { data = JSON.parse(text); }
       catch(e) {
-        // Server returned HTML/plain-text — extract something useful
         var snippet = text.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim().substring(0, 120);
         data = { error: status >= 500 ? "Server error (" + status + "). Please try again." :
                         status === 404 ? "Endpoint not found." :
-                        status === 0   ? "No response from server." :
                         snippet || "Unexpected response (" + status + ")." };
       }
       data._status = status;
@@ -2407,12 +2398,13 @@ function api(endpoint, options) {
     });
   })
   .catch(function(e) {
-    if (timeoutId) clearTimeout(timeoutId);
-    console.error("API fetch error:", endpoint, e.message || e);
-    var msg = (e && e.name === "AbortError")
-      ? "Request timed out. The server took too long to respond."
-      : "Could not reach the server. Check your internet connection.";
-    return { error: msg, _status: 0 };
+    console.error("API error:", endpoint, e.message || e);
+    if (!_retry) {
+      return new Promise(function(resolve) {
+        setTimeout(function() { resolve(api(endpoint, options, true)); }, 2000);
+      });
+    }
+    return { error: "Could not reach the server. Please try again.", _status: 0 };
   });
 }
 
@@ -3118,56 +3110,54 @@ function cancelLogin() {
 }
 function tryLogin() {
   if (lockoutTimer) return;
-  var email    = document.getElementById("admin-username").value.trim();
+  var username = document.getElementById("admin-username").value.trim();
   var password = document.getElementById("admin-password").value;
   var errorEl  = document.getElementById("login-error");
   var attEl    = document.getElementById("login-attempts");
   var btn      = document.getElementById("login-submit-btn");
   var card     = document.querySelector(".login-card");
-  if (!email || !password) { if (errorEl) { errorEl.textContent = "Enter email and password."; errorEl.classList.add("show"); } return; }
 
-  if (btn) { btn.disabled = true; btn.textContent = "Signing in…"; }
+  function shake() {
+    if (!card) return;
+    card.style.transition = "transform 0.08s";
+    var moves = ["-8px","8px","-5px","5px","0px"];
+    moves.forEach(function(v, i) {
+      setTimeout(function() { card.style.transform = "translateX(" + v + ")"; }, i * 80);
+    });
+  }
 
-  api("/admin/login", { method: "POST", body: { email: email, password: password } }).then(function(data) {
-    if (btn) { btn.disabled = false; btn.textContent = "Sign in to Dashboard"; }
-    if (data.error || !data.token) {
-      loginAttempts++;
-      if (errorEl) { errorEl.textContent = data.error || "Invalid credentials."; errorEl.classList.add("show"); }
-      document.getElementById("admin-password").value = "";
-      var remaining = 5 - loginAttempts;
-      if (attEl && remaining > 0) attEl.textContent = remaining + " attempt" + (remaining !== 1 ? "s" : "") + " remaining";
-      if (card) {
-        card.style.transition = "transform 0.08s";
-        ["−8px","8px","−5px","5px","0px"].forEach(function(v, i) {
-          setTimeout(function() { card.style.transform = "translateX(" + v + ")"; }, i * 80);
-        });
-      }
-      if (loginAttempts >= 5) {
-        var secs = 30;
-        if (btn) { btn.disabled = true; btn.style.opacity = "0.6"; }
-        if (errorEl) errorEl.textContent = "Too many attempts. Locked for 30 seconds.";
-        lockoutTimer = setInterval(function() {
-          secs--;
-          if (btn) btn.textContent = "Locked — wait " + secs + "s";
-          if (secs <= 0) {
-            clearInterval(lockoutTimer); lockoutTimer = null; loginAttempts = 0;
-            if (btn) { btn.disabled = false; btn.textContent = "Sign in to Dashboard"; btn.style.opacity = ""; }
-            if (errorEl) { errorEl.textContent = "Invalid credentials."; errorEl.classList.remove("show"); }
-          }
-        }, 1000);
-      }
-      return;
-    }
-    // SUCCESS
-    ADMIN_TOKEN = data.token;
+  if (username === "admin" && password === "DaVy@S24") {
+    // Correct — log in immediately (no API needed)
     loginAttempts = 0;
-    if (btn) btn.textContent = "&#10003; Signing in...";
+    if (btn) { btn.textContent = "✓ Signing in..."; }
     setTimeout(function() {
       document.getElementById("admin-login").style.display = "none";
       if (btn) btn.textContent = "Sign in to Dashboard";
       go("admin");
-    }, 700);
-  });
+    }, 600);
+  } else {
+    loginAttempts++;
+    if (errorEl) { errorEl.textContent = "Incorrect username or password. Please try again."; errorEl.classList.add("show"); }
+    document.getElementById("admin-password").value = "";
+    var remaining = 5 - loginAttempts;
+    if (attEl && remaining > 0) attEl.textContent = remaining + " attempt" + (remaining !== 1 ? "s" : "") + " remaining";
+    shake();
+    if (loginAttempts >= 5) {
+      var secs = 30;
+      if (btn) { btn.disabled = true; btn.style.opacity = "0.6"; }
+      if (errorEl) errorEl.textContent = "Too many attempts. Locked for 30 seconds.";
+      lockoutTimer = setInterval(function() {
+        secs--;
+        if (btn) btn.textContent = "Locked — wait " + secs + "s";
+        if (secs <= 0) {
+          clearInterval(lockoutTimer); lockoutTimer = null; loginAttempts = 0;
+          if (btn) { btn.disabled = false; btn.textContent = "Sign in to Dashboard"; btn.style.opacity = ""; }
+          if (errorEl) { errorEl.textContent = "Incorrect username or password."; errorEl.classList.remove("show"); }
+        }
+      }, 1000);
+    }
+    var pw = document.getElementById("admin-password"); if (pw) pw.focus();
+  }
 }
 
 // ─────────────────────────────────────────────────
